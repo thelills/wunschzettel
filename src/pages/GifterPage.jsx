@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { useToast } from '../hooks/useToast.jsx'
+import { useToast } from '../hooks/useToast'
 import { getAmazonImageUrl } from '../lib/affiliate'
 
 const AMAZON_TAG = 'dein-wunsch-21'
@@ -84,8 +84,8 @@ export default function GifterPage() {
         ) : (
           <div className="gift-grid">
             {wishes.map(w => {
-              const affLink = w.aff_url || (w.asin ? `https://www.amazon.de/dp/${w.asin}?tag=${AMAZON_TAG}` : null)
-              const imgSrc = w.img_url || (w.asin ? getAmazonImageUrl(w.asin) : null)
+              const affLink = w.affiliate_url || (w.asin ? `https://www.amazon.de/dp/${w.asin}?tag=${AMAZON_TAG}` : null)
+              const imgSrc = w.image_url || (w.asin ? getAmazonImageUrl(w.asin) : null)
               return (
                 <div key={w.id} className="gift-card">
                   <div className="gc-img">

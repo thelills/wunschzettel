@@ -42,13 +42,20 @@ export default function ListPage() {
     setSaving(true)
     const aff = genAffiliateLink(form.url)
     const asin = extractAsin(form.url)
+    // Use actual column names from schema
     const { error } = await supabase.from('wishes').insert({
-      registry_id: id, user_id: user.id,
-      name: form.name.trim(), price: parseFloat(form.price) || null,
-      url: form.url || null, aff_url: aff.url, aff_id: aff.id,
-      asin, img_url: asin ? getAmazonImageUrl(asin) : null,
-      note: form.note || null, priority: form.prio,
-      wish_type: 'single', is_reserved: false, ai_generated: false,
+      registry_id: id,
+      name: form.name.trim(),
+      price: parseFloat(form.price) || null,
+      url: form.url || null,
+      affiliate_url: aff.url,
+      affiliate_id: aff.id,
+      image_url: asin ? getAmazonImageUrl(asin) : null,
+      note: form.note || null,
+      priority: form.prio,
+      type: 'single',
+      is_reserved: false,
+      ai_generated: false,
     })
     setSaving(false)
     if (error) { toast('Fehler: ' + error.message); return }
@@ -60,13 +67,16 @@ export default function ListPage() {
 
   async function addAiWish(s) {
     const { error } = await supabase.from('wishes').insert({
-      registry_id: id, user_id: user.id,
+      registry_id: id,
       name: s.name, price: s.price, note: s.note,
-      asin: s.asin, aff_url: s.affUrl, aff_id: s.asin ? 'amazon' : null,
-      img_url: s.imgUrl, priority: 'med', wish_type: 'single',
+      affiliate_url: s.affUrl,
+      affiliate_id: s.asin ? 'amazon' : null,
+      image_url: s.imgUrl,
+      priority: 'med', type: 'single',
       is_reserved: false, ai_generated: true,
     })
     if (!error) { toast('✓ Hinzugefügt'); load() }
+    else toast('Fehler: ' + error.message)
   }
 
   async function deleteWish(wid) {
@@ -104,7 +114,6 @@ export default function ListPage() {
       <Nav />
       <div className="shell animate-lift">
 
-        {/* Header */}
         <div className="page-head">
           <div>
             <button onClick={() => navigate('/dashboard')} style={{ fontSize:'.78rem', color:'var(--muted)', background:'none', border:'none', cursor:'pointer', marginBottom:6, display:'flex', alignItems:'center', gap:4 }}>
@@ -130,20 +139,21 @@ export default function ListPage() {
               </div>
               <button className="icon-btn" onClick={() => setShowAI(false)}>×</button>
             </div>
-            <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:14 }}>
-              {[['Alter', <input type="number" value={aiParams.age} onChange={e => setAiParams(p=>({...p,age:+e.target.value}))} style={{ width:70, padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem' }} />],
-                ['Budget bis', <input type="number" value={aiParams.budgetMax} onChange={e => setAiParams(p=>({...p,budgetMax:+e.target.value}))} style={{ width:80, padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem' }} />],
-              ].map(([lbl, el]) => (
-                <div key={lbl} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <span style={{ fontSize:'.75rem', color:'var(--mid)', whiteSpace:'nowrap' }}>{lbl}</span>{el}
-                </div>
-              ))}
+            <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:14, alignItems:'center' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:'.75rem', color:'var(--mid)' }}>Alter</span>
+                <input type="number" value={aiParams.age} onChange={e => setAiParams(p=>({...p,age:+e.target.value}))} style={{ width:70, padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem' }} />
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:'.75rem', color:'var(--mid)' }}>Budget bis €</span>
+                <input type="number" value={aiParams.budgetMax} onChange={e => setAiParams(p=>({...p,budgetMax:+e.target.value}))} style={{ width:80, padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem' }} />
+              </div>
               <select value={aiParams.gender} onChange={e => setAiParams(p=>({...p,gender:e.target.value}))} style={{ padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem', background:'var(--white)' }}>
                 <option value="u">Keine Angabe</option>
                 <option value="m">Männlich</option>
                 <option value="f">Weiblich</option>
               </select>
-              <button className="btn btn-ai btn-sm" onClick={loadSuggestions}>Laden</button>
+              <button className="btn btn-ai btn-sm" onClick={loadSuggestions}>Vorschläge laden</button>
             </div>
             <div className="ai-grid">
               {aiSugs.map((s, i) => (
@@ -182,10 +192,14 @@ export default function ListPage() {
               </div>
               <div className="field" style={{ gridColumn:'1/-1' }}>
                 <label>Wunschname *</label>
-                <input value={form.name} onChange={set('name')} placeholder="z.B. KitchenAid Mixer" onKeyDown={e => e.key==='Enter' && addWish()} />
+                <input value={form.name} onChange={set('name')} placeholder="z.B. KitchenAid Mixer" onKeyDown={e => e.key==='Enter' && addWish()} autoFocus />
               </div>
-              <div className="field"><label>Preis (€)</label><input type="number" value={form.price} onChange={set('price')} placeholder="99" /></div>
-              <div className="field"><label>Priorität</label>
+              <div className="field">
+                <label>Preis (€)</label>
+                <input type="number" value={form.price} onChange={set('price')} placeholder="99" />
+              </div>
+              <div className="field">
+                <label>Priorität</label>
                 <select value={form.prio} onChange={set('prio')}>
                   <option value="high">Muss sein</option>
                   <option value="med">Sehr gerne</option>
@@ -218,8 +232,9 @@ export default function ListPage() {
         ) : (
           <div className="gift-grid">
             {wishes.map(w => {
-              const affLink = w.aff_url || (w.asin ? `https://www.amazon.de/dp/${w.asin}?tag=${AMAZON_TAG}` : null)
-              const imgSrc = w.img_url || (w.asin ? getAmazonImageUrl(w.asin) : null)
+              // Use actual column names from schema
+              const affLink = w.affiliate_url || (w.url?.includes('amazon') ? w.url : null)
+              const imgSrc = w.image_url
               return (
                 <div key={w.id} className="gift-card">
                   {affLink ? (
@@ -245,8 +260,8 @@ export default function ListPage() {
                     {w.price && <div className="gc-price">€{Number(w.price).toFixed(2)}</div>}
                   </div>
                   <div className="gc-foot">
-                    <div style={{ display:'flex', gap:4 }}>
-                      <span className={`badge ${PRIO_BADGE[w.priority]}`}>{PRIO_LBL[w.priority]}</span>
+                    <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
+                      <span className={`badge ${PRIO_BADGE[w.priority] || 'badge-med'}`}>{PRIO_LBL[w.priority] || 'Sehr gerne'}</span>
                       {w.ai_generated && <span className="badge badge-ai">AI</span>}
                     </div>
                     <button className="icon-btn del" onClick={() => deleteWish(w.id)}>
