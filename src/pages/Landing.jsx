@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useEffect } from 'react'
+import GiftHero from '../components/ui/GiftHero'
 
 const REVIEWS = [
   { text: 'Endlich keine peinlichen „Was wünschst du dir eigentlich?"-Gespräche mehr. Meine Familie war begeistert.', name: 'Emma K.', occasion: 'Hochzeit 2024' },
@@ -91,25 +92,28 @@ export default function Landing() {
         <div style={{ position:'absolute', bottom:0, left:0, right:0, height:200, background:'linear-gradient(to bottom,transparent,#09090b)', pointerEvents:'none' }} />
 
         {/* Content */}
-        <div style={{ position:'relative', textAlign:'center', padding:'100px 24px 80px', maxWidth:760, zIndex:1 }}>
-          <div className="ln-hero-text">
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(99,102,241,.12)', border:'1px solid rgba(99,102,241,.25)', borderRadius:100, padding:'6px 16px', marginBottom:28 }}>
-              <span style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.12em', textTransform:'uppercase', color:'rgba(99,102,241,1)' }}>Kostenlos & werbefrei</span>
+        <div style={{ position:'relative', textAlign:'center', padding:'100px 24px 80px', maxWidth:820, zIndex:1, display:'flex', flexDirection:'column', alignItems:'center' }}>
+          <div className="ln-hero-text" style={{ width:'100%' }}>
+            {/* Animated gift box */}
+            <GiftHero />
+
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(99,102,241,.12)', border:'1px solid rgba(99,102,241,.25)', borderRadius:100, padding:'6px 16px', marginBottom:24 }}>
+              <span style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.12em', textTransform:'uppercase', color:'rgba(99,102,241,.9)' }}>Kostenlos & werbefrei</span>
             </div>
-            <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:'clamp(2.8rem,6.5vw,5.2rem)', fontWeight:400, color:'#fff', lineHeight:1.08, letterSpacing:'-.03em', marginBottom:24 }}>
-              Schluss mit<br />falschen Geschenken —<br /><em style={{ fontStyle:'italic', color:'rgba(255,255,255,.45)' }}>für immer.</em>
+            <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:'clamp(2.4rem,6vw,5rem)', fontWeight:400, color:'#fff', lineHeight:1.08, letterSpacing:'-.03em', marginBottom:20 }}>
+              Schluss mit<br />falschen Geschenken —<br /><em style={{ fontStyle:'italic', color:'rgba(255,255,255,.4)' }}>für immer.</em>
             </h1>
-            <p style={{ fontSize:'1.1rem', color:'rgba(255,255,255,.6)', lineHeight:1.7, fontWeight:300, maxWidth:520, margin:'0 auto 36px' }}>
-              Erstelle deinen Wunschzettel in 3 Minuten. Teile ihn per Link. Erhalte endlich Geschenke die du wirklich willst.
+            <p style={{ fontSize:'1rem', color:'rgba(255,255,255,.55)', lineHeight:1.7, fontWeight:300, maxWidth:480, margin:'0 auto 32px' }}>
+              Erstelle deinen Wunschzettel in 3 Minuten. Teile ihn per Link. Erhalte Geschenke die du wirklich willst.
             </p>
           </div>
           <div className="ln-hero-cta" style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <button style={btnW} onClick={goReg}>Jetzt kostenlos starten →</button>
             <button style={btnO} onClick={goDemo}>Wie es funktioniert</button>
           </div>
-          <div style={{ display:'flex', gap:20, justifyContent:'center', marginTop:28, flexWrap:'wrap' }}>
-            {['Kostenlos','Keine App nötig','DSGVO konform','Keine Werbung'].map(t => (
-              <span key={t} style={{ fontSize:'.74rem', color:'rgba(255,255,255,.28)', display:'flex', alignItems:'center', gap:5 }}>
+          <div style={{ display:'flex', gap:16, justifyContent:'center', marginTop:24, flexWrap:'wrap' }}>
+            {['Kostenlos','Keine App nötig','DSGVO konform'].map(t => (
+              <span key={t} style={{ fontSize:'.72rem', color:'rgba(255,255,255,.25)', display:'flex', alignItems:'center', gap:4 }}>
                 <span style={{ color:'#6366f1' }}>✓</span>{t}
               </span>
             ))}
@@ -123,7 +127,7 @@ export default function Landing() {
       </section>
 
       {/* ── PROBLEM ── */}
-      <section style={{ padding:'100px 48px', background:'#09090b' }}>
+      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#09090b' }}>
         <div style={{ maxWidth:1000, margin:'0 auto' }}>
           <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'rgba(255,255,255,.3)', marginBottom:14 }}>Das Problem</div>
           <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#fff', fontWeight:400, letterSpacing:'-.03em', marginBottom:12 }}>Kennst du das?</h2>
@@ -145,7 +149,7 @@ export default function Landing() {
       </section>
 
       {/* ── STEPS ── */}
-      <section style={{ padding:'100px 48px', background:'#fff' }} id="ln-steps">
+      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#fff' }} id="ln-steps">
         <div style={{ maxWidth:1000, margin:'0 auto' }}>
           <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'#a1a1aa', marginBottom:14 }}>So einfach geht's</div>
           <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#09090b', fontWeight:400, letterSpacing:'-.03em', marginBottom:12 }}>3 Schritte zu mehr Freude<br />beim Schenken.</h2>
@@ -170,7 +174,7 @@ export default function Landing() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section style={{ padding:'100px 48px', background:'#fff', borderTop:'1px solid #e4e4e7' }}>
+      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#fff', borderTop:'1px solid #e4e4e7' }}>
         <div style={{ maxWidth:1000, margin:'0 auto' }}>
           <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'#a1a1aa', marginBottom:14 }}>Features</div>
           <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#09090b', fontWeight:400, letterSpacing:'-.03em', maxWidth:500, marginBottom:56 }}>Alles was du brauchst. Nichts was du nicht brauchst.</h2>
@@ -187,7 +191,7 @@ export default function Landing() {
       </section>
 
       {/* ── REVIEWS ── */}
-      <section style={{ padding:'100px 48px', background:'#09090b' }}>
+      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#09090b' }}>
         <div style={{ maxWidth:1000, margin:'0 auto' }}>
           <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'rgba(255,255,255,.3)', marginBottom:14 }}>Stimmen</div>
           <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#fff', fontWeight:400, letterSpacing:'-.03em', maxWidth:460, marginBottom:48 }}>Echte Menschen, echte Freude.</h2>
@@ -204,7 +208,7 @@ export default function Landing() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section style={{ padding:'120px 48px', background:'#09090b', borderTop:'1px solid rgba(255,255,255,.06)', textAlign:'center' }}>
+      <section style={{ padding:'80px clamp(20px,5vw,48px)', background:'#09090b', borderTop:'1px solid rgba(255,255,255,.06)', textAlign:'center' }}>
         <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2.2rem,5vw,3.8rem)', color:'#fff', fontWeight:400, letterSpacing:'-.03em', marginBottom:16, lineHeight:1.1 }}>
           Bereit?<br /><em style={{ color:'rgba(255,255,255,.45)' }}>Fang heute an.</em>
         </h2>
