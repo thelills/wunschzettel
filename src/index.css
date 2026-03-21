@@ -36,8 +36,8 @@ input,textarea,select{font-family:var(--font-sans)}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 
 /* LAYOUT */
-.shell{max-width:1040px;margin:0 auto;padding:36px 32px 100px}
-@media(max-width:640px){.shell{padding:20px 16px 80px}}
+.shell{max-width:1040px;margin:0 auto;padding:80px 32px 100px}
+@media(max-width:640px){.shell{padding:76px 16px 80px}}
 .page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:12px;flex-wrap:wrap}
 .ph-title{font-family:var(--font-serif);font-size:1.75rem;font-weight:400;color:var(--black);letter-spacing:-.02em}
 .ph-sub{font-size:.82rem;color:var(--muted);margin-top:3px}
