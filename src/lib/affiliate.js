@@ -1,4 +1,4 @@
-const TAG = import.meta.env.VITE_AMAZON_TAG || 'dein-wunsch-21'
+const TAG = 'dein-wunsch-21'
 
 // Amazon.de product image — mehrere Fallbacks
 export function getAmazonImageUrl(asin) {

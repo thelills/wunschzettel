@@ -36,8 +36,8 @@ input,textarea,select{font-family:var(--font-sans)}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 
 /* LAYOUT */
-.shell{max-width:1040px;margin:0 auto;padding:80px 32px 100px}
-@media(max-width:640px){.shell{padding:76px 16px 80px}}
+.shell{max-width:1040px;margin:0 auto;padding:32px 32px 100px}
+@media(max-width:640px){.shell{padding:24px 16px 80px}}
 .page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:12px;flex-wrap:wrap}
 .ph-title{font-family:var(--font-serif);font-size:1.75rem;font-weight:400;color:var(--black);letter-spacing:-.02em}
 .ph-sub{font-size:.82rem;color:var(--muted);margin-top:3px}
@@ -63,7 +63,7 @@ input,textarea,select{font-family:var(--font-sans)}
 .badge-res{background:#f0fdf4;color:var(--green)}
 
 /* GIFT GRID */
-.gift-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.gift-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 @media(max-width:640px){.gift-grid{grid-template-columns:1fr}}
 
 /* GIFT CARD */
