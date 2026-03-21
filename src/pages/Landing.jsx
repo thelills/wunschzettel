@@ -53,36 +53,59 @@ export default function Landing() {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
-    const video = document.createElement('video')
-    video.src = '/hero.mp4'; video.muted = true; video.playsInline = true; video.preload = 'auto'
-    let frames = []
 
-    const setSize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; drawFrame(frames[currentFrameRef.current]) }
+    function setSize() {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      const f = framesRef.current
+      if (f.length > 0) drawFrame(f[currentFrameRef.current] || f[0])
+    }
     setSize()
     window.addEventListener('resize', setSize)
 
     function drawFrame(img) {
-      if (!img || !img.complete) return
+      if (!img) return
+      // Wait for image to load if needed
+      if (!img.complete) { img.onload = () => drawFrame(img); return }
       const sc = Math.max(canvas.width / img.width, canvas.height / img.height)
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(img, (canvas.width - img.width * sc) / 2, (canvas.height - img.height * sc) / 2, img.width * sc, img.height * sc)
     }
 
     async function extractFrames() {
-      await new Promise(r => { video.onloadedmetadata = r; video.load() })
-      const total = Math.floor(video.duration * 24)
-      const off = document.createElement('canvas'); off.width = 960; off.height = 540
+      const video = document.createElement('video')
+      video.src = '/hero.mp4'
+      video.muted = true
+      video.playsInline = true
+      video.preload = 'auto'
+      video.crossOrigin = 'anonymous'
+
+      await new Promise((resolve, reject) => {
+        video.onloadedmetadata = resolve
+        video.onerror = reject
+        video.load()
+      })
+
+      const fps = 24
+      const total = Math.min(Math.floor(video.duration * fps), 200) // cap at 200 frames
+      const off = document.createElement('canvas')
+      off.width = 960; off.height = 540
       const offCtx = off.getContext('2d')
+      const frames = []
+
       for (let i = 0; i < total; i++) {
-        video.currentTime = i / 24
+        video.currentTime = i / fps
         await new Promise(r => { video.onseeked = r })
         offCtx.drawImage(video, 0, 0, 960, 540)
-        const img = new Image(); img.src = off.toDataURL('image/jpeg', 0.8); frames.push(img)
-        if (i === 0) drawFrame(img)
+        const src = off.toDataURL('image/jpeg', 0.75)
+        const img = new Image()
+        img.src = src
+        frames.push(img)
+        framesRef.current = frames // update ref incrementally so scroll can use frames immediately
+        if (i === 0) { await new Promise(r => { img.onload = r }); drawFrame(img) }
       }
-      framesRef.current = frames
     }
-    extractFrames().catch(() => {})
+    extractFrames().catch(e => console.warn('Video extraction failed:', e))
 
     function onScroll() {
       const hero = document.getElementById('ln-hero')
