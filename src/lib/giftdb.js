@@ -1,4 +1,4 @@
-const TAG = 'wunschzettel-21'
+const TAG = 'dein-wunsch-21'
 
 export const GIFT_DB = {
   u_wedding:[

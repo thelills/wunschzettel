@@ -1,4 +1,4 @@
-const TAG = import.meta.env.VITE_AMAZON_TAG || 'wunschzettel-21'
+const TAG = import.meta.env.VITE_AMAZON_TAG || 'dein-wunsch-21'
 
 export function getAmazonImageUrl(asin) {
   return asin ? `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg` : null

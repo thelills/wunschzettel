@@ -9,7 +9,7 @@ import { genAffiliateLink, extractAsin, getAmazonImageUrl } from '../lib/affilia
 
 const PRIO_LBL = { high:'Muss sein', med:'Sehr gerne', low:'Nice to have' }
 const PRIO_BADGE = { high:'badge-high', med:'badge-med', low:'badge-low' }
-const AMAZON_TAG = 'wunschzettel-21'
+const AMAZON_TAG = 'dein-wunsch-21'
 
 export default function ListPage() {
   const { id } = useParams()

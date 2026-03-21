@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast.jsx'
 import { getAmazonImageUrl } from '../lib/affiliate'
 
-const AMAZON_TAG = 'wunschzettel-21'
+const AMAZON_TAG = 'dein-wunsch-21'
 const OCC_LBL = { wedding:'Hochzeit', birthday:'Geburtstag', baby:'Babyparty', christmas:'Weihnachten', housewarming:'Einzug', other:'Sonstiges' }
 
 export default function GifterPage() {
