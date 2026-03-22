@@ -114,19 +114,19 @@ export default function ListPage() {
       <Nav />
       <div className="shell animate-lift">
 
-        <div className="page-head">
-          <div>
-            <button onClick={() => navigate('/dashboard')} style={{ fontSize:'.78rem', color:'var(--muted)', background:'none', border:'none', cursor:'pointer', marginBottom:6, display:'flex', alignItems:'center', gap:4 }}>
-              ← Listen
-            </button>
-            <h1 className="ph-title">{list.name}</h1>
-            {list.event_date && <p className="ph-sub">📅 {new Date(list.event_date).toLocaleDateString('de-DE')}</p>}
-          </div>
-          <div className="ph-actions">
-            <button className="btn btn-ai btn-sm" onClick={() => { setShowAI(s => !s); if (!showAI) loadSuggestions() }}>✦ KI-Vorschläge</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard?.writeText(shareUrl); toast('Link kopiert!') }}>Teilen</button>
-            <button className="btn btn-dark btn-sm" onClick={() => setShowAdd(s => !s)}>+ Wunsch</button>
-          </div>
+        {/* Back + Title */}
+        <div style={{ marginBottom:16 }}>
+          <button onClick={() => navigate('/dashboard')} style={{ fontSize:'.78rem', color:'var(--muted)', background:'none', border:'none', cursor:'pointer', marginBottom:8, display:'flex', alignItems:'center', gap:4, padding:0 }}>
+            ← Meine Listen
+          </button>
+          <h1 className="ph-title">{list.name}</h1>
+          {list.event_date && <p className="ph-sub">📅 {new Date(list.event_date).toLocaleDateString('de-DE')}</p>}
+        </div>
+        {/* Actions — full width row on mobile */}
+        <div style={{ display:'flex', gap:8, marginBottom:20, flexWrap:'wrap' }}>
+          <button className="btn btn-dark btn-sm" onClick={() => setShowAdd(s => !s)}>+ Wunsch</button>
+          <button className="btn btn-ai btn-sm" onClick={() => { setShowAI(s => !s); if (!showAI) loadSuggestions() }}>✦ KI-Vorschläge</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard?.writeText(shareUrl); toast('Link kopiert!') }}>Teilen</button>
         </div>
 
         {/* AI Panel */}
