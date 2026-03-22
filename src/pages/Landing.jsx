@@ -1,23 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useEffect } from 'react'
-import GiftHero from '../components/ui/GiftHero'
 
-const REVIEWS = [
-  { text: 'Endlich keine peinlichen „Was wünschst du dir eigentlich?"-Gespräche mehr. Meine Familie war begeistert.', name: 'Emma K.', occasion: 'Hochzeit 2024' },
-  { text: 'Die KI-Vorschläge haben mir in 2 Minuten genau das gegeben was ich mir nicht selbst ausdenken konnte.', name: 'Marcus T.', occasion: 'Geburtstag 2024' },
-  { text: 'Gruppengeschenk für den Kinderwagen — zwölf Leute koordiniert ohne einen Euro anzufassen.', name: 'Laura & Ben', occasion: 'Babyparty 2024' },
-]
+// ── Apple-inspired, warm neutral palette ──
+// Inspired by: floating luxury objects on white studio bg
+// Colors: warm off-white, deep charcoal, gold accent, stone grey
 
 const FEATURES = [
-  { icon: '✦', title: 'KI-Geschenkberater', body: 'Keine Ideen? Die KI schlägt passende Wünsche vor — nach Anlass, Alter und Budget. Sofort.' },
-  { icon: '◎', title: 'Keine Doppelkäufe', body: 'Schenkende reservieren Wünsche — für andere unsichtbar. Die Überraschung bleibt garantiert.' },
-  { icon: '◈', title: 'Sammlungen', body: 'Ideen das ganze Jahr sammeln — für Papa, die beste Freundin, für dich.' },
-  { icon: '⟡', title: 'Gruppengeschenke', body: 'Teure Wünsche gemeinsam erfüllen — ohne Geld einzusammeln.' },
-  { icon: '◻', title: 'Gäste ohne App', body: 'Schenkende brauchen kein Konto. Einfach den Link öffnen — fertig.' },
-  { icon: '○', title: 'Kostenlos & werbefrei', body: 'Kein Abo, keine Werbung. Finanziert durch Affiliate-Links beim Kauf.' },
+  { icon:'✦', title:'KI-Geschenkberater', body:'Sofort passende Vorschläge nach Anlass, Alter und Budget — keine leere Seite mehr.' },
+  { icon:'◎', title:'Kein Doppelkauf', body:'Wünsche werden reserviert — für alle Schenkenden sichtbar, für dich unsichtbar.' },
+  { icon:'◈', title:'Sammlungen', body:'Ideen übers Jahr sammeln — für Papa, die beste Freundin, für dich. Nie wieder improvisieren.' },
+  { icon:'⟡', title:'Gruppengeschenke', body:'Teure Wünsche gemeinsam erfüllen — ohne Geld einzusammeln.' },
+  { icon:'◻', title:'Gäste ohne App', body:'Schenkende brauchen kein Konto. Den Link öffnen — kaufen — fertig.' },
+  { icon:'○', title:'Kostenlos & werbefrei', body:'Kein Abo, keine Werbung. Finanziert durch Affiliate-Links beim Kauf.' },
 ]
+
+const REVIEWS = [
+  { text:'Endlich keine peinlichen „Was wünschst du dir?"-Gespräche mehr. Meine Familie war begeistert.', name:'Emma K.', occ:'Hochzeit 2024' },
+  { text:'Die KI-Vorschläge haben mir in 2 Minuten genau das gegeben was ich mir nicht ausdenken konnte.', name:'Marcus T.', occ:'Geburtstag 2024' },
+  { text:'Gruppengeschenk für den Kinderwagen — zwölf Leute koordiniert ohne einen Euro anzufassen.', name:'Laura & Ben', occ:'Babyparty 2024' },
+]
+
+// Floating gift items — matches the photo aesthetic
+function FloatingItems() {
+  const items = [
+    { emoji:'✈️', x:'-140px', y:'-120px', size:'3.2rem', delay:'0s',   rot:'-18deg' },
+    { emoji:'🎧', x: '-90px', y:'  50px', size:'2.8rem', delay:'.4s',  rot:'  8deg' },
+    { emoji:'💎', x: '120px', y:'-100px', size:'2.4rem', delay:'.2s',  rot:' 15deg' },
+    { emoji:'🌸', x: '110px', y:'  60px', size:'2.6rem', delay:'.6s',  rot:' -5deg' },
+    { emoji:'⌚', x:'-160px', y:'  20px', size:'2.2rem', delay:'.8s',  rot:'-12deg' },
+    { emoji:'🍾', x: '155px', y:' -20px', size:'2.0rem', delay:'1.0s', rot:'  8deg' },
+  ]
+  return (
+    <div style={{ position:'relative', width:200, height:200, margin:'0 auto 48px' }}>
+      <style>{`
+        @keyframes lp-float{0%,100%{transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1)}50%{transform:translate(calc(var(--x) + 4px),calc(var(--y) - 8px)) rotate(calc(var(--r) + 3deg)) scale(1.05)}}
+        @keyframes lp-in{from{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(.4)}to{opacity:1;transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(1)}}
+      `}</style>
+      {/* Center gift */}
+      <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', fontSize:'4rem', filter:'drop-shadow(0 8px 24px rgba(0,0,0,.12))' }}>🎁</div>
+      {items.map((it, i) => (
+        <div key={i} style={{
+          position:'absolute', top:'50%', left:'50%',
+          fontSize: it.size,
+          '--x': it.x, '--y': it.y, '--r': it.rot,
+          animation:`lp-in .6s cubic-bezier(.2,1.4,.4,1) ${it.delay} both, lp-float ${2.4+i*.3}s ease-in-out ${it.delay} infinite`,
+          filter:'drop-shadow(0 4px 12px rgba(0,0,0,.1))',
+          userSelect:'none', pointerEvents:'none',
+        }}>{it.emoji}</div>
+      ))}
+    </div>
+  )
+}
 
 export default function Landing() {
   const { user } = useAuth()
@@ -27,121 +61,98 @@ export default function Landing() {
   useEffect(() => { if (user) navigate('/dashboard') }, [user])
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
-    window.addEventListener('scroll', fn, { passive: true })
+    window.addEventListener('scroll', fn, { passive:true })
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  const goReg = () => navigate('/register')
-  const goDemo = () => document.getElementById('ln-steps')?.scrollIntoView({ behavior: 'smooth' })
+  const go = path => navigate(path)
 
-  const btnW = { fontFamily:"'Geist',system-ui,sans-serif", fontSize:'.9rem', fontWeight:600, padding:'13px 28px', borderRadius:100, border:'none', cursor:'pointer', background:'#fff', color:'#09090b', display:'inline-flex', alignItems:'center', gap:6, transition:'all .2s', whiteSpace:'nowrap' }
-  const btnO = { fontFamily:"'Geist',system-ui,sans-serif", fontSize:'.9rem', fontWeight:500, padding:'13px 22px', borderRadius:100, cursor:'pointer', background:'transparent', color:'rgba(255,255,255,.75)', border:'1px solid rgba(255,255,255,.22)', transition:'all .2s', whiteSpace:'nowrap' }
+  // Apple-style button
+  const btnPrimary = { display:'inline-flex', alignItems:'center', gap:6, padding:'12px 28px', borderRadius:100, border:'none', cursor:'pointer', background:'#1d1d1f', color:'#f5f5f7', fontSize:'.92rem', fontWeight:600, letterSpacing:'-.01em', fontFamily:'inherit', transition:'all .2s', whiteSpace:'nowrap' }
+  const btnSecondary = { display:'inline-flex', alignItems:'center', gap:6, padding:'12px 24px', borderRadius:100, cursor:'pointer', background:'transparent', color:'#1d1d1f', border:'1.5px solid rgba(0,0,0,.18)', fontSize:'.92rem', fontWeight:500, letterSpacing:'-.01em', fontFamily:'inherit', transition:'all .2s', whiteSpace:'nowrap' }
+
+  const warm = { bg:'#fafaf8', card:'#fff', border:'#ebebeb', text:'#1d1d1f', mid:'#6e6e73', muted:'#aeaeb2', accent:'#b07d4a' }
 
   return (
-    <div style={{ background:'#09090b', overflowX:'hidden', fontFamily:"'Geist',system-ui,sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <div style={{ background:warm.bg, color:warm.text, fontFamily:"-apple-system,'SF Pro Display','Geist',system-ui,sans-serif", overflowX:'hidden' }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0}
-        @keyframes fadein{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes scalein{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
-        .ln-hero-img{animation:scalein 1.2s cubic-bezier(.4,0,.2,1) both}
-        .ln-hero-text{animation:fadein .8s cubic-bezier(.4,0,.2,1) .3s both}
-        .ln-hero-cta{animation:fadein .8s cubic-bezier(.4,0,.2,1) .55s both}
+        @keyframes fadein{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleup{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+        .lp-animate{animation:fadein .7s ease .1s both}
+        .lp-animate2{animation:fadein .7s ease .25s both}
+        .lp-animate3{animation:fadein .7s ease .4s both}
+        @media(max-width:640px){
+          .lp-section{padding:72px 20px !important}
+          .lp-hero-inner{padding:80px 20px 60px !important}
+          .lp-steps{grid-template-columns:1fr !important}
+          .lp-step:first-child{border-radius:16px !important}
+          .lp-step:last-child{border-radius:16px !important}
+          .lp-features{grid-template-columns:1fr 1fr !important;gap:28px !important}
+          .lp-nav{padding:0 16px !important}
+          .lp-hero-h1{font-size:clamp(2.4rem,8vw,4rem) !important}
+        }
       `}</style>
 
       {/* ── NAV ── */}
-      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 48px', height:60, background: scrolled ? 'rgba(9,9,11,.92)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '1px solid rgba(255,255,255,.07)' : 'none', transition:'all .35s' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:9, cursor:'pointer' }} onClick={() => navigate('/')}>
-          <div style={{ width:28, height:28, borderRadius:7, background:'linear-gradient(135deg,#fff 0%,#d4d4dc 35%,#f8f8fc 65%,#c0c0cc 100%)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C7 1.5 3 3.2 3 7c0 2.2 1.8 4 4 4s4-1.8 4-4C11 3.2 7 1.5 7 1.5z" stroke="#3f3f46" strokeWidth="1.2" strokeLinecap="round"/><path d="M7 5.5v5" stroke="#3f3f46" strokeWidth="1.2" strokeLinecap="round"/></svg>
+      <nav className="lp-nav" style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 40px', height:52, background: scrolled ? 'rgba(250,250,248,.92)' : 'transparent', backdropFilter: scrolled ? 'saturate(180%) blur(20px)' : 'none', borderBottom: scrolled ? `1px solid ${warm.border}` : 'none', transition:'all .3s' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={() => go('/')}>
+          <div style={{ width:26, height:26, borderRadius:7, background:'#1d1d1f', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <span style={{ fontSize:'1rem' }}>🎁</span>
           </div>
-          <span style={{ fontSize:'1rem', fontWeight:600, color:'#fff', letterSpacing:'-.025em' }}>Dein Wunsch</span>
+          <span style={{ fontSize:'.95rem', fontWeight:600, color:warm.text, letterSpacing:'-.02em' }}>Dein Wunsch</span>
         </div>
-        <div style={{ display:'flex', gap:8 }}>
-          <button onClick={() => navigate('/login')} style={{ ...btnO, padding:'7px 16px', fontSize:'.8rem' }}>Anmelden</button>
-          <button onClick={goReg} style={{ ...btnW, padding:'7px 16px', fontSize:'.8rem' }}>Kostenlos starten</button>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <button onClick={() => go('/login')} style={{ ...btnSecondary, padding:'6px 16px', fontSize:'.8rem', border:'none', background:'transparent', color:warm.mid }}>Anmelden</button>
+          <button onClick={() => go('/register')} style={{ ...btnPrimary, padding:'7px 18px', fontSize:'.8rem' }}>Kostenlos starten</button>
         </div>
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ position:'relative', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        {/* Background: deep gradient + floating gift boxes SVG pattern */}
-        <div className="ln-hero-img" style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,#0f0f1a 0%,#1a0f2e 30%,#0f1a2e 60%,#0a0a0f 100%)' }} />
+      <section style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', background:`linear-gradient(180deg,${warm.bg} 0%,#f2f0ed 100%)` }}>
+        {/* Subtle dot grid */}
+        <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(circle,rgba(0,0,0,.06) 1px,transparent 1px)', backgroundSize:'32px 32px', pointerEvents:'none', opacity:.6 }} />
+        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:160, background:`linear-gradient(transparent,${warm.bg})`, pointerEvents:'none' }} />
 
-        {/* Decorative blobs */}
-        <div style={{ position:'absolute', top:'15%', left:'10%', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%)', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', bottom:'20%', right:'8%', width:320, height:320, borderRadius:'50%', background:'radial-gradient(circle,rgba(139,92,246,.12) 0%,transparent 70%)', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', top:'40%', right:'20%', width:200, height:200, borderRadius:'50%', background:'radial-gradient(circle,rgba(236,72,153,.08) 0%,transparent 70%)', pointerEvents:'none' }} />
-
-        {/* Floating emoji gifts */}
-        {[
-          { e:'🎁', x:'8%', y:'20%', s:2.4, op:.18 },
-          { e:'🎀', x:'88%', y:'15%', s:1.8, op:.14 },
-          { e:'💍', x:'5%', y:'65%', s:1.6, op:.12 },
-          { e:'🎂', x:'92%', y:'60%', s:2, op:.15 },
-          { e:'🍾', x:'15%', y:'80%', s:1.5, op:.1 },
-          { e:'⭐', x:'82%', y:'82%', s:1.4, op:.1 },
-        ].map((f,i) => (
-          <div key={i} style={{ position:'absolute', left:f.x, top:f.y, fontSize:`${f.s}rem`, opacity:f.op, pointerEvents:'none', userSelect:'none' }}>{f.e}</div>
-        ))}
-
-        {/* Subtle grid lines */}
-        <div style={{ position:'absolute', inset:0, backgroundImage:'linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px)', backgroundSize:'80px 80px', pointerEvents:'none' }} />
-
-        {/* Bottom fade */}
-        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:200, background:'linear-gradient(to bottom,transparent,#09090b)', pointerEvents:'none' }} />
-
-        {/* Content */}
-        <div style={{ position:'relative', textAlign:'center', padding:'100px 24px 80px', maxWidth:820, zIndex:1, display:'flex', flexDirection:'column', alignItems:'center' }}>
-          <div className="ln-hero-text" style={{ width:'100%' }}>
-            {/* Animated gift box */}
-            <GiftHero />
-
-            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(99,102,241,.12)', border:'1px solid rgba(99,102,241,.25)', borderRadius:100, padding:'6px 16px', marginBottom:24 }}>
-              <span style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.12em', textTransform:'uppercase', color:'rgba(99,102,241,.9)' }}>Kostenlos & werbefrei</span>
+        <div className="lp-hero-inner" style={{ position:'relative', textAlign:'center', padding:'100px 40px 80px', maxWidth:720, zIndex:1 }}>
+          <div className="lp-animate">
+            <FloatingItems />
+          </div>
+          <div className="lp-animate2">
+            <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(176,125,74,.1)', border:'1px solid rgba(176,125,74,.25)', borderRadius:100, padding:'5px 14px', marginBottom:20 }}>
+              <span style={{ fontSize:'.68rem', fontWeight:600, letterSpacing:'.1em', textTransform:'uppercase', color:warm.accent }}>Kostenlos · Werbefrei · DSGVO</span>
             </div>
-            <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:'clamp(2.4rem,6vw,5rem)', fontWeight:400, color:'#fff', lineHeight:1.08, letterSpacing:'-.03em', marginBottom:20 }}>
-              Schluss mit<br />falschen Geschenken —<br /><em style={{ fontStyle:'italic', color:'rgba(255,255,255,.4)' }}>für immer.</em>
+            <h1 className="lp-hero-h1" style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:'clamp(2.8rem,5.5vw,4.8rem)', fontWeight:400, color:warm.text, lineHeight:1.07, letterSpacing:'-.03em', marginBottom:20 }}>
+              Schluss mit Geschenken,<br />die keiner braucht.
             </h1>
-            <p style={{ fontSize:'1rem', color:'rgba(255,255,255,.55)', lineHeight:1.7, fontWeight:300, maxWidth:480, margin:'0 auto 32px' }}>
-              Erstelle deinen Wunschzettel in 3 Minuten. Teile ihn per Link. Erhalte Geschenke die du wirklich willst.
+            <p style={{ fontSize:'1.1rem', color:warm.mid, lineHeight:1.7, maxWidth:480, margin:'0 auto 36px', fontWeight:400 }}>
+              Erstelle deinen Wunschzettel in 3 Minuten. Teile ihn per Link. Bekomme Geschenke, die du wirklich willst.
             </p>
           </div>
-          <div className="ln-hero-cta" style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            <button style={btnW} onClick={goReg}>Jetzt kostenlos starten →</button>
-            <button style={btnO} onClick={goDemo}>Wie es funktioniert</button>
+          <div className="lp-animate3" style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+            <button style={btnPrimary} onClick={() => go('/register')}>Jetzt kostenlos starten →</button>
+            <button style={btnSecondary} onClick={() => document.getElementById('lp-steps')?.scrollIntoView({ behavior:'smooth' })}>Wie es funktioniert</button>
           </div>
-          <div style={{ display:'flex', gap:16, justifyContent:'center', marginTop:24, flexWrap:'wrap' }}>
-            {['Kostenlos','Keine App nötig','DSGVO konform'].map(t => (
-              <span key={t} style={{ fontSize:'.72rem', color:'rgba(255,255,255,.25)', display:'flex', alignItems:'center', gap:4 }}>
-                <span style={{ color:'#6366f1' }}>✓</span>{t}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div style={{ position:'absolute', bottom:32, left:'50%', transform:'translateX(-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:8, opacity:.35 }}>
-          <svg width="16" height="24" viewBox="0 0 16 24" fill="none"><rect x="1" y="1" width="14" height="22" rx="7" stroke="white" strokeWidth="1.5"/><circle cx="8" cy="7" r="2" fill="white"><animate attributeName="cy" values="7;15;7" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/></circle></svg>
         </div>
       </section>
 
       {/* ── PROBLEM ── */}
-      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#09090b' }}>
-        <div style={{ maxWidth:1000, margin:'0 auto' }}>
-          <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'rgba(255,255,255,.3)', marginBottom:14 }}>Das Problem</div>
-          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#fff', fontWeight:400, letterSpacing:'-.03em', marginBottom:12 }}>Kennst du das?</h2>
-          <p style={{ color:'rgba(255,255,255,.45)', lineHeight:1.7, maxWidth:460, marginBottom:48 }}>Jedes Jahr dasselbe Theater. Dabei könnte Schenken so schön sein.</p>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:16 }}>
+      <section className="lp-section" style={{ padding:'100px 60px', background:'#fff' }}>
+        <div style={{ maxWidth:960, margin:'0 auto' }}>
+          <div style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:warm.muted, marginBottom:14 }}>Das Problem</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(1.8rem,3.5vw,2.8rem)', color:warm.text, fontWeight:400, letterSpacing:'-.025em', marginBottom:12 }}>Kennst du das?</h2>
+          <p style={{ color:warm.mid, lineHeight:1.7, maxWidth:420, marginBottom:48 }}>Jedes Jahr dasselbe Theater. Dabei könnte Schenken so schön sein.</p>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:2 }}>
             {[
-              { icon:'😬', title:'„Was wünschst du dir eigentlich?"', body:'Diese Frage kommt immer — und jedes Mal weißt du nicht was du sagen sollst. Ergebnis: Geschenke die keiner braucht.' },
-              { icon:'📦', title:'Dreimal dasselbe Geschenk', body:'Tante Helga, Oma und dein bester Freund kaufen alle dasselbe — weil niemand weiß was schon bestellt wurde.' },
-              { icon:'🤷', title:'Schenken auf gut Glück', body:'Stunden gesucht, trotzdem falsche Farbe, falsche Größe. Geld verschenkt statt Freude gemacht.' },
-            ].map(c => (
-              <div key={c.title} style={{ background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.08)', borderRadius:16, padding:28 }}>
-                <div style={{ fontSize:'1.6rem', marginBottom:14 }}>{c.icon}</div>
-                <div style={{ fontWeight:600, color:'rgba(255,255,255,.9)', marginBottom:8 }}>{c.title}</div>
-                <div style={{ fontSize:'.84rem', color:'rgba(255,255,255,.4)', lineHeight:1.65 }}>{c.body}</div>
+              { icon:'😬', title:'„Was wünschst du dir?"', body:'Diese Frage kommt immer — und jedes Mal weißt du nicht was du sagen sollst.' },
+              { icon:'📦', title:'Dreimal dasselbe Geschenk', body:'Tante, Oma und Freund kaufen alle dasselbe — weil niemand weiß was schon bestellt wurde.' },
+              { icon:'🤷', title:'Schenken auf gut Glück', body:'Stunden gesucht, trotzdem falsche Größe, falsche Farbe. Geld verschenkt statt Freude gemacht.' },
+            ].map((c,i) => (
+              <div key={i} style={{ background:warm.bg, padding:'32px 28px', borderRadius: i===0?'16px 0 0 16px':i===2?'0 16px 16px 0':0, borderRight:i<2?`1px solid ${warm.border}`:'none' }}>
+                <div style={{ fontSize:'1.8rem', marginBottom:16 }}>{c.icon}</div>
+                <div style={{ fontWeight:600, color:warm.text, marginBottom:8, fontSize:'.95rem' }}>{c.title}</div>
+                <div style={{ fontSize:'.84rem', color:warm.mid, lineHeight:1.65 }}>{c.body}</div>
               </div>
             ))}
           </div>
@@ -149,58 +160,95 @@ export default function Landing() {
       </section>
 
       {/* ── STEPS ── */}
-      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#fff' }} id="ln-steps">
-        <div style={{ maxWidth:1000, margin:'0 auto' }}>
-          <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'#a1a1aa', marginBottom:14 }}>So einfach geht's</div>
-          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#09090b', fontWeight:400, letterSpacing:'-.03em', marginBottom:12 }}>3 Schritte zu mehr Freude<br />beim Schenken.</h2>
-          <p style={{ color:'#71717a', lineHeight:1.7, maxWidth:460, marginBottom:56 }}>Kein Konto für Schenkende nötig. Kein Download. Einfach ein Link.</p>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:2 }}>
+      <section className="lp-section" style={{ padding:'100px 60px', background:warm.bg }} id="lp-steps">
+        <div style={{ maxWidth:960, margin:'0 auto' }}>
+          <div style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:warm.muted, marginBottom:14 }}>So einfach geht's</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(1.8rem,3.5vw,2.8rem)', color:warm.text, fontWeight:400, letterSpacing:'-.025em', marginBottom:12 }}>3 Schritte zu echten Momenten.</h2>
+          <p style={{ color:warm.mid, lineHeight:1.7, maxWidth:400, marginBottom:52 }}>Kein Konto für Schenkende. Kein Download. Einfach ein Link.</p>
+          <div className="lp-steps" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:2 }}>
             {[
-              { n:'01', title:'Liste erstellen', body:'Wähle einen Anlass. Füge Wünsche hinzu — manuell oder mit dem KI-Berater. Dauert 3 Minuten.' },
-              { n:'02', title:'Link teilen', body:'Ein Link, fertig. Familie und Freunde öffnen ihn ohne App, ohne Konto — einfach im Browser.' },
-              { n:'03', title:'Freude erleben', body:'Wünsche werden reserviert. Kein Doppelkauf. Du öffnest Geschenke die du wirklich willst.' },
+              { n:'01', t:'Liste erstellen', b:'Wähle einen Anlass, füge Wünsche hinzu — manuell oder mit dem KI-Berater. Dauert 3 Minuten.' },
+              { n:'02', t:'Link teilen', b:'Einen Link senden — Familie und Freunde öffnen ihn ohne App, ohne Konto, einfach im Browser.' },
+              { n:'03', t:'Freude erleben', b:'Wünsche werden reserviert, kein Doppelkauf. Du öffnest Geschenke die du wirklich wolltest.' },
             ].map((s,i) => (
-              <div key={i} style={{ background:'#f4f4f5', padding:'36px 28px', borderRadius:i===0?'16px 0 0 16px':i===2?'0 16px 16px 0':0 }}>
-                <div style={{ fontFamily:"'DM Serif Display',serif", fontSize:'3rem', color:'#e4e4e7', lineHeight:1, marginBottom:16 }}>{s.n}</div>
-                <div style={{ fontWeight:600, color:'#09090b', marginBottom:8 }}>{s.title}</div>
-                <div style={{ fontSize:'.84rem', color:'#71717a', lineHeight:1.65 }}>{s.body}</div>
+              <div key={i} className={`lp-step${i===0?' lp-step-first':i===2?' lp-step-last':''}`} style={{ background:'#fff', padding:'36px 28px', borderRadius:i===0?'16px 0 0 16px':i===2?'0 16px 16px 0':0, borderRight:i<2?`1px solid ${warm.border}`:'none' }}>
+                <div style={{ fontFamily:"'DM Serif Display',serif", fontSize:'3.5rem', color:warm.border, lineHeight:1, marginBottom:16 }}>{s.n}</div>
+                <div style={{ fontWeight:600, color:warm.text, marginBottom:8 }}>{s.t}</div>
+                <div style={{ fontSize:'.84rem', color:warm.mid, lineHeight:1.65 }}>{s.b}</div>
               </div>
             ))}
           </div>
           <div style={{ textAlign:'center', marginTop:40 }}>
-            <button onClick={goReg} style={{ ...btnW, background:'#09090b', color:'#fff' }}>Jetzt Liste erstellen →</button>
+            <button style={btnPrimary} onClick={() => go('/register')}>Jetzt Liste erstellen →</button>
           </div>
         </div>
       </section>
 
       {/* ── FEATURES ── */}
-      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#fff', borderTop:'1px solid #e4e4e7' }}>
-        <div style={{ maxWidth:1000, margin:'0 auto' }}>
-          <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'#a1a1aa', marginBottom:14 }}>Features</div>
-          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#09090b', fontWeight:400, letterSpacing:'-.03em', maxWidth:500, marginBottom:56 }}>Alles was du brauchst. Nichts was du nicht brauchst.</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:40 }}>
+      <section className="lp-section" style={{ padding:'100px 60px', background:'#fff', borderTop:`1px solid ${warm.border}` }}>
+        <div style={{ maxWidth:960, margin:'0 auto' }}>
+          <div style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:warm.muted, marginBottom:14 }}>Features</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(1.8rem,3.5vw,2.8rem)', color:warm.text, fontWeight:400, letterSpacing:'-.025em', maxWidth:460, marginBottom:52 }}>Alles was du brauchst. Nichts was du nicht brauchst.</h2>
+          <div className="lp-features" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:48 }}>
             {FEATURES.map(f => (
               <div key={f.title}>
-                <div style={{ width:44, height:44, borderRadius:12, background:'#f4f4f5', border:'1px solid #e4e4e7', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', marginBottom:14 }}>{f.icon}</div>
-                <div style={{ fontWeight:600, color:'#09090b', marginBottom:8 }}>{f.title}</div>
-                <div style={{ fontSize:'.84rem', color:'#71717a', lineHeight:1.65 }}>{f.body}</div>
+                <div style={{ width:40, height:40, borderRadius:10, background:warm.bg, border:`1px solid ${warm.border}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', marginBottom:14, color:warm.mid }}>{f.icon}</div>
+                <div style={{ fontWeight:600, color:warm.text, marginBottom:8, fontSize:'.9rem' }}>{f.title}</div>
+                <div style={{ fontSize:'.82rem', color:warm.mid, lineHeight:1.65 }}>{f.body}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* ── COMPARISON ── */}
+      <section className="lp-section" style={{ padding:'100px 60px', background:warm.bg, borderTop:`1px solid ${warm.border}` }}>
+        <div style={{ maxWidth:800, margin:'0 auto' }}>
+          <div style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:warm.muted, marginBottom:14 }}>Vergleich</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(1.8rem,3.5vw,2.8rem)', color:warm.text, fontWeight:400, letterSpacing:'-.025em', marginBottom:40 }}>Besser als die Amazon-Liste.</h2>
+          <div style={{ background:'#fff', borderRadius:16, border:`1px solid ${warm.border}`, overflow:'hidden' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom:`1px solid ${warm.border}` }}>
+                  {['Feature','Dein Wunsch','Amazon Liste','Andere Apps'].map((h,i) => (
+                    <th key={h} style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', color:i===1?warm.text:warm.muted, padding:'14px 20px', textAlign:'left', background:i===1?warm.bg:'transparent', borderRight:i<3?`1px solid ${warm.border}`:'none' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['KI-Geschenkvorschläge',true,false,false],
+                  ['Alle Online-Shops',true,false,true],
+                  ['Gäste ohne Account',true,false,true],
+                  ['Gruppengeschenke',true,false,false],
+                  ['Sammlungen',true,false,false],
+                  ['Keine Werbung',true,false,false],
+                  ['Kostenlos',true,true,true],
+                ].map(([feat,...vals],ri) => (
+                  <tr key={feat} style={{ borderBottom:ri<6?`1px solid ${warm.border}`:'none' }}>
+                    <td style={{ fontSize:'.84rem', color:warm.mid, padding:'12px 20px', borderRight:`1px solid ${warm.border}` }}>{feat}</td>
+                    {vals.map((v,i) => (
+                      <td key={i} style={{ padding:'12px 20px', background:i===0?warm.bg:'transparent', borderRight:i<2?`1px solid ${warm.border}`:'none', fontSize:'.95rem', color:v?'#22c55e':warm.border, fontWeight:v?700:400, textAlign:'left' }}>{v?'✓':'–'}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* ── REVIEWS ── */}
-      <section style={{ padding:'100px clamp(20px,5vw,48px)', background:'#09090b' }}>
-        <div style={{ maxWidth:1000, margin:'0 auto' }}>
-          <div style={{ fontSize:'.72rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:'rgba(255,255,255,.3)', marginBottom:14 }}>Stimmen</div>
-          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4vw,3rem)', color:'#fff', fontWeight:400, letterSpacing:'-.03em', maxWidth:460, marginBottom:48 }}>Echte Menschen, echte Freude.</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:16 }}>
+      <section className="lp-section" style={{ padding:'100px 60px', background:'#fff', borderTop:`1px solid ${warm.border}` }}>
+        <div style={{ maxWidth:960, margin:'0 auto' }}>
+          <div style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.14em', textTransform:'uppercase', color:warm.muted, marginBottom:14 }}>Stimmen</div>
+          <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(1.8rem,3.5vw,2.8rem)', color:warm.text, fontWeight:400, letterSpacing:'-.025em', maxWidth:440, marginBottom:48 }}>Echte Menschen, echte Freude.</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:16 }}>
             {REVIEWS.map((r,i) => (
-              <div key={i} style={{ background:'rgba(255,255,255,.05)', border:'1px solid rgba(255,255,255,.08)', borderRadius:16, padding:24 }}>
-                <div style={{ color:'#f59e0b', marginBottom:12, letterSpacing:2 }}>★★★★★</div>
-                <p style={{ fontSize:'.88rem', color:'rgba(255,255,255,.75)', lineHeight:1.65, marginBottom:16, fontStyle:'italic' }}>„{r.text}"</p>
-                <div style={{ fontSize:'.76rem', fontWeight:600, color:'rgba(255,255,255,.35)' }}>{r.name} · {r.occasion}</div>
+              <div key={i} style={{ background:warm.bg, border:`1px solid ${warm.border}`, borderRadius:16, padding:24 }}>
+                <div style={{ color:'#f59e0b', marginBottom:12, letterSpacing:2, fontSize:'.85rem' }}>★★★★★</div>
+                <p style={{ fontSize:'.88rem', color:warm.mid, lineHeight:1.65, marginBottom:16, fontStyle:'italic' }}>„{r.text}"</p>
+                <div style={{ fontSize:'.75rem', fontWeight:600, color:warm.muted }}>{r.name} · {r.occ}</div>
               </div>
             ))}
           </div>
@@ -208,20 +256,27 @@ export default function Landing() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section style={{ padding:'80px clamp(20px,5vw,48px)', background:'#09090b', borderTop:'1px solid rgba(255,255,255,.06)', textAlign:'center' }}>
-        <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2.2rem,5vw,3.8rem)', color:'#fff', fontWeight:400, letterSpacing:'-.03em', marginBottom:16, lineHeight:1.1 }}>
-          Bereit?<br /><em style={{ color:'rgba(255,255,255,.45)' }}>Fang heute an.</em>
+      <section className="lp-section" style={{ padding:'120px 60px', background:warm.bg, borderTop:`1px solid ${warm.border}`, textAlign:'center' }}>
+        <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'clamp(2rem,4.5vw,3.6rem)', color:warm.text, fontWeight:400, letterSpacing:'-.03em', marginBottom:16, lineHeight:1.1 }}>
+          Bereit für Geschenke,<br /><em style={{ fontStyle:'italic', color:warm.muted }}>die wirklich passen?</em>
         </h2>
-        <p style={{ color:'rgba(255,255,255,.4)', marginBottom:36 }}>Kostenlos · Keine Kreditkarte · In 3 Minuten eingerichtet</p>
-        <button onClick={goReg} style={{ ...btnW, padding:'14px 40px', fontSize:'.95rem' }}>Kostenlos starten →</button>
+        <p style={{ color:warm.mid, marginBottom:36, fontSize:'.95rem' }}>Kostenlos · Keine Kreditkarte · In 3 Minuten eingerichtet</p>
+        <button style={{ ...btnPrimary, padding:'14px 36px', fontSize:'.95rem' }} onClick={() => go('/register')}>Kostenlos starten →</button>
+        <div style={{ display:'flex', gap:20, justifyContent:'center', marginTop:24, flexWrap:'wrap' }}>
+          {['Kostenlos für immer','Keine Kreditkarte','Keine Werbung','DSGVO konform'].map(t => (
+            <span key={t} style={{ fontSize:'.74rem', color:warm.muted, display:'flex', alignItems:'center', gap:5 }}>
+              <span style={{ color:'#22c55e' }}>✓</span>{t}
+            </span>
+          ))}
+        </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ borderTop:'1px solid rgba(255,255,255,.06)', padding:'24px 48px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-        <span style={{ fontSize:'.74rem', color:'rgba(255,255,255,.2)' }}>© Dein Wunsch 2026 · Niklas Lill · Dachau</span>
+      <footer style={{ borderTop:`1px solid ${warm.border}`, padding:'20px 40px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12, background:'#fff' }}>
+        <span style={{ fontSize:'.74rem', color:warm.muted }}>© Dein Wunsch 2026 · Niklas Lill · Dachau</span>
         <div style={{ display:'flex', gap:20 }}>
           {[['Impressum','/impressum.html'],['Datenschutz','/datenschutz.html']].map(([l,h]) => (
-            <a key={l} href={h} style={{ fontSize:'.74rem', color:'rgba(255,255,255,.2)', textDecoration:'none' }}>{l}</a>
+            <a key={l} href={h} style={{ fontSize:'.74rem', color:warm.muted, textDecoration:'none' }}>{l}</a>
           ))}
         </div>
       </footer>
