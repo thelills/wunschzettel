@@ -5,11 +5,14 @@ import { supabase } from '../lib/supabase'
 import Nav from '../components/layout/Nav'
 import { useToast } from '../hooks/useToast.jsx'
 import { getSuggestions } from '../lib/giftdb'
-import { genAffiliateLink, extractAsin, getAmazonImageUrl } from '../lib/affiliate'
+import { genAffiliateLink, extractAsin, getAmazonImageUrl, getAmazonUrl } from '../lib/affiliate'
 
-const PRIO_LBL = { high:'Muss sein', med:'Sehr gerne', low:'Nice to have' }
-const PRIO_BADGE = { high:'badge-high', med:'badge-med', low:'badge-low' }
-const AMAZON_TAG = 'dein-wunsch-21'
+const PRIO = { high:'Muss sein', med:'Sehr gerne', low:'Nice to have' }
+const PRIO_C = { high:'#b91c1c', med:'#b45309', low:'#15803d' }
+const PRIO_BG = { high:'#fef2f2', med:'#fffbeb', low:'#f0fdf4' }
+
+const btn = (dark) => ({ display:'inline-flex', alignItems:'center', gap:5, padding:'7px 16px', borderRadius:8, border: dark?'none':'1px solid #ebebeb', cursor:'pointer', background: dark?'#1d1d1f':'#fff', color: dark?'#fff':'#6e6e73', fontSize:'.78rem', fontWeight: dark?600:500, fontFamily:'inherit', whiteSpace:'nowrap', flexShrink:0 })
+const btnAi = { display:'inline-flex', alignItems:'center', gap:5, padding:'7px 16px', borderRadius:8, border:'1px solid rgba(99,102,241,.25)', cursor:'pointer', background:'rgba(99,102,241,.06)', color:'#6366f1', fontSize:'.78rem', fontWeight:600, fontFamily:'inherit', whiteSpace:'nowrap', flexShrink:0 }
 
 export default function ListPage() {
   const { id } = useParams()
@@ -23,7 +26,7 @@ export default function ListPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [showAI, setShowAI] = useState(false)
   const [aiSugs, setAiSugs] = useState([])
-  const [aiParams, setAiParams] = useState({ age: 30, gender: 'u', budgetMax: 150 })
+  const [aiParams, setAiParams] = useState({ age:30, gender:'u', budgetMax:150 })
   const [form, setForm] = useState({ name:'', price:'', url:'', note:'', prio:'med' })
   const [saving, setSaving] = useState(false)
   const [fetching, setFetching] = useState(false)
@@ -42,7 +45,6 @@ export default function ListPage() {
     setSaving(true)
     const aff = genAffiliateLink(form.url)
     const asin = extractAsin(form.url)
-    // Use actual column names from schema
     const { error } = await supabase.from('wishes').insert({
       registry_id: id,
       name: form.name.trim(),
@@ -61,17 +63,18 @@ export default function ListPage() {
     if (error) { toast('Fehler: ' + error.message); return }
     setForm({ name:'', price:'', url:'', note:'', prio:'med' })
     setShowAdd(false)
-    toast(aff.mon ? '✓ Gespeichert mit Affiliate-Link' : '✓ Wunsch gespeichert')
+    toast('✓ Wunsch gespeichert')
     load()
   }
 
   async function addAiWish(s) {
     const { error } = await supabase.from('wishes').insert({
       registry_id: id,
-      name: s.name, price: s.price, note: s.note,
+      name: s.name, price: s.price, note: s.cat,
       affiliate_url: s.affUrl,
       affiliate_id: s.asin ? 'amazon' : null,
       image_url: s.imgUrl,
+      url: s.affUrl,
       priority: 'med', type: 'single',
       is_reserved: false, ai_generated: true,
     })
@@ -106,70 +109,72 @@ export default function ListPage() {
 
   const shareUrl = `${window.location.origin}/r/${list?.slug}`
 
-  if (loading) return <div><Nav /><div className="shell" style={{ color:'var(--muted)' }}>Lädt…</div></div>
-  if (!list) return <div><Nav /><div className="shell">Liste nicht gefunden.</div></div>
+  if (loading) return <div style={{ background:'#fafaf8', minHeight:'100vh' }}><Nav /><div style={{ padding:'48px 32px', color:'#aeaeb2' }}>Lädt…</div></div>
+  if (!list) return <div style={{ background:'#fafaf8', minHeight:'100vh' }}><Nav /><div style={{ padding:'48px 32px' }}>Liste nicht gefunden.</div></div>
 
   return (
-    <div>
+    <div style={{ background:'#fafaf8', minHeight:'100vh', display:'flex', flexDirection:'column' }}>
       <Nav />
-      <div className="shell animate-lift">
+      <div style={{ flex:1, maxWidth:1040, margin:'0 auto', padding:'28px 32px 80px', width:'100%', boxSizing:'border-box' }}>
 
         {/* Back + Title */}
-        <div style={{ marginBottom:16 }}>
-          <button onClick={() => navigate('/dashboard')} style={{ fontSize:'.78rem', color:'var(--muted)', background:'none', border:'none', cursor:'pointer', marginBottom:8, display:'flex', alignItems:'center', gap:4, padding:0 }}>
-            ← Meine Listen
-          </button>
-          <h1 className="ph-title">{list.name}</h1>
-          {list.event_date && <p className="ph-sub">📅 {new Date(list.event_date).toLocaleDateString('de-DE')}</p>}
-        </div>
-        {/* Actions — full width row on mobile */}
-        <div style={{ display:'flex', gap:8, marginBottom:20, flexWrap:'wrap' }}>
-          <button className="btn btn-dark btn-sm" onClick={() => setShowAdd(s => !s)}>+ Wunsch</button>
-          <button className="btn btn-ai btn-sm" onClick={() => { setShowAI(s => !s); if (!showAI) loadSuggestions() }}>✦ KI-Vorschläge</button>
-          <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard?.writeText(shareUrl); toast('Link kopiert!') }}>Teilen</button>
+        <button onClick={() => navigate('/dashboard')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'.78rem', color:'#aeaeb2', display:'flex', alignItems:'center', gap:4, padding:0, marginBottom:10, fontFamily:'inherit' }}>
+          ← Meine Listen
+        </button>
+        <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:'1.75rem', fontWeight:400, color:'#1d1d1f', letterSpacing:'-.02em', marginBottom:4 }}>{list.name}</h1>
+        {list.event_date && <p style={{ fontSize:'.8rem', color:'#aeaeb2', marginBottom:0 }}>📅 {new Date(list.event_date).toLocaleDateString('de-DE')}</p>}
+
+        {/* Actions */}
+        <div style={{ display:'flex', gap:8, margin:'16px 0 20px', flexWrap:'wrap' }}>
+          <button style={btn(true)} onClick={() => setShowAdd(s => !s)}>+ Wunsch</button>
+          <button style={btnAi} onClick={() => { setShowAI(s => !s); if (!showAI) loadSuggestions() }}>✦ KI-Vorschläge</button>
+          <button style={btn(false)} onClick={() => { navigator.clipboard?.writeText(shareUrl); toast('Link kopiert!') }}>Teilen</button>
         </div>
 
         {/* AI Panel */}
         {showAI && (
-          <div style={{ background:'var(--ai-s)', border:'1px solid var(--ai-b)', borderRadius:16, padding:20, marginBottom:20 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+          <div style={{ background:'rgba(99,102,241,.05)', border:'1px solid rgba(99,102,241,.18)', borderRadius:16, padding:20, marginBottom:20 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
               <div>
-                <div style={{ fontWeight:600, color:'var(--ai)', fontSize:'.9rem' }}>✦ KI-Vorschläge</div>
-                <div style={{ fontSize:'.76rem', color:'var(--mid)', marginTop:2 }}>Klick auf eine Karte um sie zur Liste hinzuzufügen</div>
+                <div style={{ fontWeight:600, color:'#6366f1', fontSize:'.88rem' }}>✦ KI-Vorschläge</div>
+                <div style={{ fontSize:'.74rem', color:'#6e6e73', marginTop:2 }}>Klick auf eine Karte um sie hinzuzufügen</div>
               </div>
-              <button className="icon-btn" onClick={() => setShowAI(false)}>×</button>
+              <button onClick={() => setShowAI(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.2rem', color:'#aeaeb2', padding:'4px 8px' }}>×</button>
             </div>
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:14, alignItems:'center' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:'.75rem', color:'var(--mid)' }}>Alter</span>
-                <input type="number" value={aiParams.age} onChange={e => setAiParams(p=>({...p,age:+e.target.value}))} style={{ width:70, padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem' }} />
-              </div>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:'.75rem', color:'var(--mid)' }}>Budget bis €</span>
-                <input type="number" value={aiParams.budgetMax} onChange={e => setAiParams(p=>({...p,budgetMax:+e.target.value}))} style={{ width:80, padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem' }} />
-              </div>
-              <select value={aiParams.gender} onChange={e => setAiParams(p=>({...p,gender:e.target.value}))} style={{ padding:'6px 10px', border:'1px solid var(--border)', borderRadius:8, fontSize:'.82rem', background:'var(--white)' }}>
+              {[
+                { lbl:'Alter', type:'number', val:aiParams.age, key:'age', w:70 },
+                { lbl:'Budget bis €', type:'number', val:aiParams.budgetMax, key:'budgetMax', w:80 },
+              ].map(f => (
+                <div key={f.key} style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <span style={{ fontSize:'.74rem', color:'#6e6e73' }}>{f.lbl}</span>
+                  <input type={f.type} value={f.val} onChange={e => setAiParams(p => ({ ...p, [f.key]: +e.target.value }))} style={{ width:f.w, padding:'5px 9px', border:'1px solid #ebebeb', borderRadius:7, fontSize:'.82rem', fontFamily:'inherit' }} />
+                </div>
+              ))}
+              <select value={aiParams.gender} onChange={e => setAiParams(p => ({ ...p, gender: e.target.value }))} style={{ padding:'6px 10px', border:'1px solid #ebebeb', borderRadius:7, fontSize:'.82rem', background:'#fff', fontFamily:'inherit' }}>
                 <option value="u">Keine Angabe</option>
                 <option value="m">Männlich</option>
                 <option value="f">Weiblich</option>
               </select>
-              <button className="btn btn-ai btn-sm" onClick={loadSuggestions}>Vorschläge laden</button>
+              <button style={btnAi} onClick={loadSuggestions}>Neu laden</button>
             </div>
-            <div className="ai-grid">
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:10 }}>
               {aiSugs.map((s, i) => (
-                <div key={i} className="ai-card" onClick={() => addAiWish(s)}>
-                  {s.popular && <div className="ai-card-pop">Beliebt</div>}
-                  {s.imgUrl && <img src={s.imgUrl} alt={s.name} style={{ width:'100%', height:90, objectFit:'cover', borderRadius:8, marginBottom:8 }} onError={e => e.target.style.display='none'} />}
-                  <div className="ai-card-name">{s.name}</div>
-                  <div className="ai-card-note">{s.note}</div>
-                  <div className="ai-card-foot">
-                    <div className="ai-card-price">€{s.price}</div>
-                    <div className="ai-add-btn">+ Hinzufügen</div>
+                <div key={i} onClick={() => addAiWish(s)} style={{ background:'#fff', border:'1px solid rgba(99,102,241,.2)', borderRadius:12, padding:14, position:'relative', cursor:'pointer', transition:'all .15s' }}>
+                  {s.popular && <div style={{ position:'absolute', top:8, right:8, fontSize:'.58rem', fontWeight:700, color:'#6366f1', background:'rgba(99,102,241,.1)', padding:'2px 7px', borderRadius:100 }}>Beliebt</div>}
+                  {s.imgUrl && (
+                    <img src={s.imgUrl} alt={s.name} style={{ width:'100%', height:80, objectFit:'contain', borderRadius:6, marginBottom:8, background:'#f9f9f9' }} onError={e => e.target.style.display='none'} />
+                  )}
+                  <div style={{ fontSize:'.82rem', fontWeight:600, color:'#1d1d1f', lineHeight:1.3, marginBottom:4, paddingRight:s.popular?36:0 }}>{s.name}</div>
+                  <div style={{ fontSize:'.72rem', color:'#aeaeb2', marginBottom:8 }}>{s.cat}</div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <div style={{ fontWeight:700, color:'#1d1d1f', fontSize:'.88rem' }}>€{s.price}</div>
+                    <div style={{ fontSize:'.68rem', fontWeight:600, color:'#6366f1', background:'rgba(99,102,241,.08)', padding:'3px 8px', borderRadius:6 }}>+ Hinzufügen</div>
                   </div>
                   {s.affUrl && (
-                    <a href={s.affUrl} target="_blank" rel="noopener" className="ai-amazon-link" onClick={e => e.stopPropagation()}>
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M4 2H2.5A1.5 1.5 0 001 3.5v4A1.5 1.5 0 002.5 9h4A1.5 1.5 0 008 7.5V6M6 1h3v3M9 1L5 5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Amazon
+                    <a href={s.affUrl} target="_blank" rel="noopener" onClick={e => e.stopPropagation()} style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:'.68rem', color:'#aeaeb2', marginTop:6, textDecoration:'none' }}>
+                      <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M4 2H2.5A1.5 1.5 0 001 3.5v4A1.5 1.5 0 002.5 9h4A1.5 1.5 0 008 7.5V6M6 1h3v3M9 1L5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      Amazon.de
                     </a>
                   )}
                 </div>
@@ -180,14 +185,14 @@ export default function ListPage() {
 
         {/* Add Form */}
         {showAdd && (
-          <div className="card" style={{ padding:20, marginBottom:20 }}>
-            <div style={{ fontWeight:600, fontSize:'.9rem', marginBottom:14 }}>Wunsch hinzufügen</div>
+          <div style={{ background:'#fff', border:'1px solid #ebebeb', borderRadius:16, padding:20, marginBottom:20 }}>
+            <div style={{ fontWeight:600, fontSize:'.9rem', marginBottom:14, color:'#1d1d1f' }}>Wunsch hinzufügen</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
               <div className="field" style={{ gridColumn:'1/-1' }}>
                 <label>Produkt-URL (optional)</label>
                 <div style={{ display:'flex', gap:8 }}>
                   <input type="url" value={form.url} onChange={set('url')} placeholder="https://amazon.de/dp/…" style={{ flex:1 }} />
-                  <button className="btn btn-ghost btn-sm" onClick={autoFetch} disabled={!form.url?.startsWith('http')||fetching}>{fetching?'…':'Laden'}</button>
+                  <button style={btn(false)} onClick={autoFetch} disabled={!form.url?.startsWith('http')||fetching}>{fetching?'…':'Laden'}</button>
                 </div>
               </div>
               <div className="field" style={{ gridColumn:'1/-1' }}>
@@ -208,71 +213,72 @@ export default function ListPage() {
               </div>
               <div className="field" style={{ gridColumn:'1/-1' }}>
                 <label>Hinweis (optional)</label>
-                <textarea value={form.note} onChange={set('note')} placeholder="z.B. Bitte in Rot, Größe M" style={{ minHeight:60 }} />
+                <textarea value={form.note} onChange={set('note')} placeholder="z.B. Bitte in Rot, Größe M" style={{ minHeight:56 }} />
               </div>
             </div>
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
-              <button className="btn btn-dark btn-sm" onClick={addWish} disabled={saving}>{saving?'Speichert…':'Speichern'}</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowAdd(false)}>Abbrechen</button>
+              <button style={btn(true)} onClick={addWish} disabled={saving}>{saving?'Speichert…':'Speichern'}</button>
+              <button style={btn(false)} onClick={() => setShowAdd(false)}>Abbrechen</button>
             </div>
           </div>
         )}
 
-        {/* Wishes Grid */}
+        {/* Wishes */}
         {wishes.length === 0 && !showAdd && !showAI ? (
-          <div className="empty-state">
-            <div className="empty-icon">✨</div>
-            <h2 className="empty-title">Liste ist leer</h2>
-            <p className="empty-sub">Füge deinen ersten Wunsch hinzu oder lass die KI Vorschläge machen.</p>
+          <div style={{ textAlign:'center', padding:'64px 20px' }}>
+            <div style={{ fontSize:'2rem', marginBottom:14 }}>✨</div>
+            <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'1.3rem', color:'#1d1d1f', marginBottom:8 }}>Liste ist leer</h2>
+            <p style={{ fontSize:'.84rem', color:'#6e6e73', marginBottom:20 }}>Füge deinen ersten Wunsch hinzu oder lass die KI Vorschläge machen.</p>
             <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
-              <button className="btn btn-dark" onClick={() => setShowAdd(true)}>+ Wunsch hinzufügen</button>
-              <button className="btn btn-ai" onClick={() => { setShowAI(true); loadSuggestions() }}>✦ KI-Vorschläge</button>
+              <button style={btn(true)} onClick={() => setShowAdd(true)}>+ Wunsch hinzufügen</button>
+              <button style={btnAi} onClick={() => { setShowAI(true); loadSuggestions() }}>✦ KI-Vorschläge</button>
             </div>
           </div>
         ) : (
-          <div className="gift-grid">
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:14 }}>
             {wishes.map(w => {
-              // Use actual column names from schema
-              const affLink = w.affiliate_url || (w.url?.includes('amazon') ? w.url : null)
+              const affLink = w.affiliate_url || w.url
               const imgSrc = w.image_url
               return (
-                <div key={w.id} className="gift-card">
-                  {affLink ? (
-                    <a href={affLink} target="_blank" rel="noopener" style={{ textDecoration:'none', color:'inherit' }}>
-                      <div className="gc-img">
-                        {imgSrc && <img src={imgSrc} alt={w.name} onError={e => e.target.style.display='none'} />}
-                        <div className="gc-img-icon" style={{ display: imgSrc?'none':'flex' }}>🎁</div>
-                        <div className={`gc-prio-dot ${w.priority}`} />
-                        {w.ai_generated && <div className="gc-ai-badge">AI</div>}
-                        <div className="gc-shop-badge">Amazon →</div>
-                      </div>
-                    </a>
-                  ) : (
-                    <div className="gc-img">
-                      <div className="gc-img-icon">🎁</div>
-                      <div className={`gc-prio-dot ${w.priority}`} />
-                      {w.ai_generated && <div className="gc-ai-badge">AI</div>}
-                    </div>
-                  )}
-                  <div className="gc-body">
-                    <div className="gc-name">{w.name}</div>
-                    {w.note && <div className="gc-note">{w.note}</div>}
-                    {w.price && <div className="gc-price">€{Number(w.price).toFixed(2)}</div>}
+                <div key={w.id} style={{ background:'#fff', border:'1px solid #ebebeb', borderRadius:16, overflow:'hidden', display:'flex', flexDirection:'column', position:'relative', minWidth:0 }}>
+                  {/* Image */}
+                  <div style={{ height:160, background:'#f9f9f9', position:'relative', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    {imgSrc ? (
+                      <img src={imgSrc} alt={w.name} style={{ width:'100%', height:'100%', objectFit:'contain', padding:8 }} onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
+                    ) : null}
+                    <div style={{ fontSize:'2.5rem', display: imgSrc ? 'none' : 'flex', position:'absolute', inset:0, alignItems:'center', justifyContent:'center' }}>🎁</div>
+                    {/* Priority dot */}
+                    <div style={{ position:'absolute', top:10, left:10, width:8, height:8, borderRadius:'50%', background: PRIO_C[w.priority] || '#f59e0b' }} />
+                    {w.ai_generated && <div style={{ position:'absolute', top:8, right:8, fontSize:'.58rem', fontWeight:700, background:'#6366f1', color:'#fff', padding:'2px 6px', borderRadius:100 }}>AI</div>}
+                    {affLink && <div style={{ position:'absolute', bottom:6, right:6, background:'rgba(0,0,0,.5)', backdropFilter:'blur(4px)', color:'#fff', fontSize:'.62rem', fontWeight:600, padding:'2px 7px', borderRadius:5 }}>Amazon →</div>}
                   </div>
-                  <div className="gc-foot">
-                    <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                      <span className={`badge ${PRIO_BADGE[w.priority] || 'badge-med'}`}>{PRIO_LBL[w.priority] || 'Sehr gerne'}</span>
-                      {w.ai_generated && <span className="badge badge-ai">AI</span>}
-                    </div>
-                    <button className="icon-btn del" onClick={() => deleteWish(w.id)}>
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 3h8M4.5 3V2h3v1M5 5.5v3M7 5.5v3M3 3l.5 7h5L9 3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  {/* Body */}
+                  <div style={{ padding:'12px 14px 8px', flex:1 }}>
+                    {affLink ? (
+                      <a href={affLink} target="_blank" rel="noopener" style={{ textDecoration:'none' }}>
+                        <div style={{ fontWeight:600, color:'#1d1d1f', fontSize:'.88rem', lineHeight:1.35, marginBottom:4 }}>{w.name}</div>
+                      </a>
+                    ) : (
+                      <div style={{ fontWeight:600, color:'#1d1d1f', fontSize:'.88rem', lineHeight:1.35, marginBottom:4 }}>{w.name}</div>
+                    )}
+                    {w.note && <div style={{ fontSize:'.74rem', color:'#6e6e73', lineHeight:1.5, marginBottom:6 }}>{w.note}</div>}
+                    {w.price && <div style={{ fontWeight:700, color:'#1d1d1f', fontSize:'.95rem' }}>€{Number(w.price).toFixed(2)}</div>}
+                  </div>
+                  {/* Footer */}
+                  <div style={{ padding:'8px 14px 12px', display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid #f5f5f5' }}>
+                    <span style={{ fontSize:'.68rem', fontWeight:600, padding:'3px 8px', borderRadius:100, background: PRIO_BG[w.priority] || '#fffbeb', color: PRIO_C[w.priority] || '#b45309' }}>
+                      {PRIO[w.priority] || 'Sehr gerne'}
+                    </span>
+                    <button onClick={() => deleteWish(w.id)} style={{ width:28, height:28, borderRadius:7, border:'1px solid #ebebeb', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#ef4444' }}>
+                      <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5h3v1M4 3.5l.5 7h4L9 3.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                   </div>
+                  {/* Reserved veil */}
                   {w.is_reserved && (
-                    <div className="res-veil">
+                    <div style={{ position:'absolute', inset:0, background:'rgba(255,255,255,.88)', backdropFilter:'blur(3px)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6, borderRadius:16 }}>
                       <span style={{ fontSize:'1.5rem' }}>✓</span>
-                      <div className="rv-label">Reserviert</div>
-                      {w.reserved_by && <div className="rv-who">{w.reserved_by}</div>}
+                      <div style={{ fontSize:'.76rem', fontWeight:600, color:'#16a34a' }}>Reserviert</div>
+                      {w.reserved_by && <div style={{ fontSize:'.7rem', color:'#6e6e73' }}>{w.reserved_by}</div>}
                     </div>
                   )}
                 </div>
@@ -281,6 +287,17 @@ export default function ListPage() {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer style={{ borderTop:'1px solid #ebebeb', padding:'20px 32px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12, background:'#fff' }}>
+        <span style={{ fontSize:'.74rem', color:'#aeaeb2' }}>© Dein Wunsch 2026 · Niklas Lill</span>
+        <div style={{ display:'flex', gap:20 }}>
+          {[['Impressum','/impressum.html'],['Datenschutz','/datenschutz.html']].map(([l,h]) => (
+            <a key={l} href={h} style={{ fontSize:'.74rem', color:'#aeaeb2', textDecoration:'none' }}>{l}</a>
+          ))}
+        </div>
+      </footer>
+
       {ToastEl}
     </div>
   )

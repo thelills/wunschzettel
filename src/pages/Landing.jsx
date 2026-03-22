@@ -24,12 +24,12 @@ const REVIEWS = [
 // Floating gift items — matches the photo aesthetic
 function FloatingItems() {
   const items = [
-    { emoji:'✈️', x:'-140px', y:'-120px', size:'3.2rem', delay:'0s',   rot:'-18deg' },
-    { emoji:'🎧', x: '-90px', y:'  50px', size:'2.8rem', delay:'.4s',  rot:'  8deg' },
-    { emoji:'💎', x: '120px', y:'-100px', size:'2.4rem', delay:'.2s',  rot:' 15deg' },
-    { emoji:'🌸', x: '110px', y:'  60px', size:'2.6rem', delay:'.6s',  rot:' -5deg' },
-    { emoji:'⌚', x:'-160px', y:'  20px', size:'2.2rem', delay:'.8s',  rot:'-12deg' },
-    { emoji:'🍾', x: '155px', y:' -20px', size:'2.0rem', delay:'1.0s', rot:'  8deg' },
+    { emoji:'✈️', x:'-90px',  y:'-80px',  size:'2.6rem', delay:'0s',   rot:'-18deg' },
+    { emoji:'🎧', x: '-70px', y:' 50px',  size:'2.2rem', delay:'.4s',  rot:'  8deg' },
+    { emoji:'💎', x:  '85px', y:'-70px',  size:'2.0rem', delay:'.2s',  rot:' 15deg' },
+    { emoji:'🌸', x:  '80px', y:' 50px',  size:'2.1rem', delay:'.6s',  rot:' -5deg' },
+    { emoji:'⌚', x:'-100px', y:'  5px',  size:'1.8rem', delay:'.8s',  rot:'-12deg' },
+    { emoji:'🍾', x:  '95px', y:' -5px',  size:'1.7rem', delay:'1.0s', rot:'  8deg' },
   ]
   return (
     <div style={{ position:'relative', width:200, height:200, margin:'0 auto 48px' }}>
@@ -110,7 +110,7 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', background:`linear-gradient(180deg,${warm.bg} 0%,#f2f0ed 100%)` }}>
+      <section style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', position:'relative', background:`linear-gradient(180deg,${warm.bg} 0%,#f2f0ed 100%)`, overflow:'hidden' }}>
         {/* Subtle dot grid */}
         <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(circle,rgba(0,0,0,.06) 1px,transparent 1px)', backgroundSize:'32px 32px', pointerEvents:'none', opacity:.6 }} />
         <div style={{ position:'absolute', bottom:0, left:0, right:0, height:160, background:`linear-gradient(transparent,${warm.bg})`, pointerEvents:'none' }} />
