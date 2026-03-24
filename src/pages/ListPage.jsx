@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import Nav from '../components/layout/Nav'
 import { useToast } from '../hooks/useToast.jsx'
 import { getSuggestions } from '../lib/giftdb'
-import { genAffiliateLink, extractAsin, getAmazonImageUrl, getAmazonUrl } from '../lib/affiliate'
+import { genAffiliateLink, extractAsin, getAmazonImageUrl, getAmazonUrl, fetchProductData } from '../lib/affiliate'
 
 const PRIO = { high:'Muss sein', med:'Sehr gerne', low:'Nice to have' }
 const PRIO_C = { high:'#b91c1c', med:'#b45309', low:'#15803d' }
@@ -26,7 +26,7 @@ export default function ListPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [showAI, setShowAI] = useState(false)
   const [aiSugs, setAiSugs] = useState([])
-  const [aiParams, setAiParams] = useState({ age:30, gender:'u', budgetMax:150 })
+  const [aiParams, setAiParams] = useState({ ageGroup:'30-39', gender:'u', budgetMax:150 })
   const [form, setForm] = useState({ name:'', price:'', url:'', note:'', prio:'med' })
   const [saving, setSaving] = useState(false)
   const [fetching, setFetching] = useState(false)
@@ -92,19 +92,22 @@ export default function ListPage() {
     if (!form.url?.startsWith('http')) return
     setFetching(true)
     try {
-      const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(form.url)}`, { signal: AbortSignal.timeout(8000) })
-      const { contents: h } = await r.json()
-      const og = p => h.match(new RegExp(`<meta[^>]+property=["']${p}["'][^>]+content=["']([^"']+)["']`, 'i'))?.[1]
-      const title = (og('og:title') || h.match(/<title>([^<]+)<\/title>/i)?.[1] || '').replace(/\s*[|–\-—]\s*(Amazon|Zalando).*/i,'').trim().slice(0,100)
-      const price = og('product:price:amount')
-      if (title) setForm(f => ({ ...f, name: title }))
-      if (price) setForm(f => ({ ...f, price: parseFloat(price.replace(',','.')) }))
+      const data = await fetchProductData(form.url)
+      if (data) {
+        if (data.name) setForm(f => ({ ...f, name: data.name }))
+        if (data.imgUrl && !form.url.includes('zalando')) {
+          // Store image for when wish is saved
+          window._pendingImgUrl = data.imgUrl
+        }
+      }
     } catch {}
     setFetching(false)
   }
 
   function loadSuggestions() {
-    setAiSugs(getSuggestions({ ...aiParams, occasion: list?.occasion }))
+    const ageMap = {'18-29':24,'30-39':34,'40-49':44,'50-59':54,'60+':65}
+    const age = ageMap[aiParams.ageGroup] || 34
+    setAiSugs(getSuggestions({ age, gender:aiParams.gender, budgetMax:aiParams.budgetMax, occasion: list?.occasion }))
   }
 
   const shareUrl = `${window.location.origin}/r/${list?.slug}`
@@ -142,15 +145,20 @@ export default function ListPage() {
               <button onClick={() => setShowAI(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.2rem', color:'#aeaeb2', padding:'4px 8px' }}>×</button>
             </div>
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:14, alignItems:'center' }}>
-              {[
-                { lbl:'Alter', type:'number', val:aiParams.age, key:'age', w:70 },
-                { lbl:'Budget bis €', type:'number', val:aiParams.budgetMax, key:'budgetMax', w:80 },
-              ].map(f => (
-                <div key={f.key} style={{ display:'flex', alignItems:'center', gap:6 }}>
-                  <span style={{ fontSize:'.74rem', color:'#6e6e73' }}>{f.lbl}</span>
-                  <input type={f.type} value={f.val} onChange={e => setAiParams(p => ({ ...p, [f.key]: +e.target.value }))} style={{ width:f.w, padding:'5px 9px', border:'1px solid #ebebeb', borderRadius:7, fontSize:'.82rem', fontFamily:'inherit' }} />
-                </div>
-              ))}
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <span style={{ fontSize:'.74rem', color:'#6e6e73' }}>Altersgruppe</span>
+                <select value={aiParams.ageGroup} onChange={e => setAiParams(p => ({ ...p, ageGroup: e.target.value }))} style={{ padding:'5px 9px', border:'1px solid #ebebeb', borderRadius:7, fontSize:'.82rem', fontFamily:'inherit', background:'#fff' }}>
+                  <option value="18-29">18–29 Jahre</option>
+                  <option value="30-39">30–39 Jahre</option>
+                  <option value="40-49">40–49 Jahre</option>
+                  <option value="50-59">50–59 Jahre</option>
+                  <option value="60+">60+ Jahre</option>
+                </select>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <span style={{ fontSize:'.74rem', color:'#6e6e73' }}>Budget bis €</span>
+                <input type="number" value={aiParams.budgetMax} onChange={e => setAiParams(p => ({ ...p, budgetMax: +e.target.value }))} style={{ width:80, padding:'5px 9px', border:'1px solid #ebebeb', borderRadius:7, fontSize:'.82rem', fontFamily:'inherit' }} />
+              </div>
               <select value={aiParams.gender} onChange={e => setAiParams(p => ({ ...p, gender: e.target.value }))} style={{ padding:'6px 10px', border:'1px solid #ebebeb', borderRadius:7, fontSize:'.82rem', background:'#fff', fontFamily:'inherit' }}>
                 <option value="u">Keine Angabe</option>
                 <option value="m">Männlich</option>
