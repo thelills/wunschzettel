@@ -85,11 +85,18 @@ export default function GifterPage() {
           <div className="gift-grid">
             {wishes.map(w => {
               const affLink = w.affiliate_url || (w.asin ? `https://www.amazon.de/dp/${w.asin}?tag=${AMAZON_TAG}` : null)
-              const imgSrc = w.image_url || (w.asin ? getAmazonImageUrl(w.asin) : null)
+              const asinFromUrl = w.affiliate_url?.match(/\/dp\/([A-Z0-9]{10})/i)?.[1]
+              const imgSrc = w.image_url || (asinFromUrl ? getAmazonImageUrl(asinFromUrl) : null)
               return (
                 <div key={w.id} className="gift-card">
                   <div className="gc-img">
-                    {imgSrc && <img src={imgSrc} alt={w.name} onError={e => e.target.style.display='none'} />}
+                    {imgSrc && <img src={imgSrc} alt={w.name} style={{width:'100%',height:'100%',objectFit:'contain',padding:8}} onError={e => {
+                      const asin = w.affiliate_url?.match(/\/dp\/([A-Z0-9]{10})/i)?.[1]
+                      if (asin && !e.target.dataset.tried) {
+                        e.target.dataset.tried='1'
+                        e.target.src=`https://images-na.ssl-images-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`
+                      } else { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }
+                    }} />}
                     <div className="gc-img-icon" style={{ display:imgSrc?'none':'flex' }}>🎁</div>
                     {affLink && !w.is_reserved && <div className="gc-shop-badge">Amazon →</div>}
                   </div>

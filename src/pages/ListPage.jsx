@@ -92,16 +92,13 @@ export default function ListPage() {
   async function autoFetch() {
     if (!form.url?.startsWith('http')) return
     setFetching(true)
-    try {
-      const data = await fetchProductData(form.url)
-      if (data) {
-        if (data.name) setForm(f => ({ ...f, name: data.name }))
-        if (data.price) setForm(f => ({ ...f, price: String(data.price) }))
-        // Store fetched image URL to use when saving
-        if (data.imgUrl) window._pendingImgUrl = data.imgUrl
-        else window._pendingImgUrl = null
-      }
-    } catch {}
+    // fetchProductData is now synchronous-style (no proxy) — instant result
+    const data = await fetchProductData(form.url)
+    if (data) {
+      if (data.name) setForm(f => ({ ...f, name: data.name }))
+      if (data.price) setForm(f => ({ ...f, price: String(data.price) }))
+      window._pendingImgUrl = data.imgUrl || null
+    }
     setFetching(false)
   }
 
@@ -253,7 +250,24 @@ export default function ListPage() {
                   {/* Image */}
                   <div style={{ height:160, background:'#f9f9f9', position:'relative', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     {imgSrc ? (
-                      <img src={imgSrc} alt={w.name} style={{ width:'100%', height:'100%', objectFit:'contain', padding:8 }} onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
+                      <img
+                        src={imgSrc}
+                        alt={w.name}
+                        style={{ width:'100%', height:'100%', objectFit:'contain', padding:8 }}
+                        onError={e => {
+                          // Try fallback image formats
+                          const asin = w.affiliate_id === 'amazon' && w.affiliate_url
+                            ? w.affiliate_url.match(/\/dp\/([A-Z0-9]{10})/i)?.[1]
+                            : null
+                          if (asin && !e.target.dataset.tried) {
+                            e.target.dataset.tried = '1'
+                            e.target.src = `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`
+                          } else {
+                            e.target.style.display='none'
+                            e.target.nextSibling.style.display='flex'
+                          }
+                        }}
+                      />
                     ) : null}
                     <div style={{ fontSize:'2.5rem', display: imgSrc ? 'none' : 'flex', position:'absolute', inset:0, alignItems:'center', justifyContent:'center' }}>🎁</div>
                     {/* Priority dot */}
