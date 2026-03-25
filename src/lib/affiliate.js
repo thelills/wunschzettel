@@ -2,7 +2,6 @@ const TAG = 'dein-wunsch-21'
 
 export function extractAsin(url) {
   if (!url) return null
-  // Alle Amazon URL-Formate: /dp/, /gp/product/, /gp/aw/d/, /product/
   return url.match(/(?:\/dp\/|\/gp\/(?:aw\/d|product)\/|\/product\/)([A-Z0-9]{10})/i)?.[1] || null
 }
 
@@ -10,10 +9,9 @@ export function getAmazonUrl(asin) {
   return `https://www.amazon.de/dp/${asin}?tag=${TAG}`
 }
 
-// Amazon-Produktbild via ASIN — _AC_ Format funktioniert zuverlässig als <img src>
+// _AC_SX300_ ist das einzige Format das Amazon zuverlässig als <img src> erlaubt
 export function getAmazonImageUrl(asin) {
   if (!asin) return null
-  // _AC_SX300_ = Amazon CDN mit 300px Breite, kein CORS-Problem
   return `https://images-eu.ssl-images-amazon.com/images/P/${asin}.01._AC_SX300_.jpg`
 }
 
@@ -25,9 +23,7 @@ export function genAffiliateLink(url) {
       const asin = extractAsin(url)
       return {
         url: asin ? `https://www.amazon.de/dp/${asin}?tag=${TAG}` : `${url.split('?')[0]}?tag=${TAG}`,
-        id: 'amazon',
-        mon: true,
-        asin,
+        id: 'amazon', mon: true, asin,
       }
     }
     if (/zalando\.(de|at)/i.test(u.hostname)) {
@@ -37,51 +33,34 @@ export function genAffiliateLink(url) {
   return { url, id: 'generic', mon: false, asin: null }
 }
 
-// Produktdaten aus Amazon-URL holen via allorigins proxy
-// Extrahiert: Titel, Preis, Bild-URL (echte m.media-amazon.com URL)
+// Produktdaten aus URL extrahieren — KEIN Proxy, KEIN Fetch, sofort
+// Gibt Name aus URL-Slug, ASIN, Bild und Affiliate-Link zurück
 export async function fetchProductData(url) {
+  if (!url?.startsWith('http')) return null
+
   const asin = extractAsin(url)
-  if (!asin) return null
 
+  // Produktname aus URL-Slug extrahieren
+  // Amazon-URLs: /ProduktName-Weitere-Details/dp/ASIN
+  let name = ''
   try {
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.amazon.de/dp/${asin}`)}`
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) })
-    const { contents } = await res.json()
-
-    if (!contents) return { asin, name: '', affUrl: getAmazonUrl(asin), imgUrl: null }
-
-    // Titel aus og:title oder <title>
-    const title = (
-      contents.match(/property="og:title"\s+content="([^"]+)"/)?.[1] ||
-      contents.match(/content="([^"]+)"\s+property="og:title"/)?.[1] ||
-      contents.match(/<title>([^<]+)<\/title>/i)?.[1] ||
-      ''
-    ).replace(/\s*[|:–\-]\s*(Amazon\.de|Amazon).*$/i, '').trim().slice(0, 100)
-
-    // Echte Bild-URL aus m.media-amazon.com (zuverlässig!)
-    const imgMatch = contents.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[^"'\s]+\.jpg/)?.[0]
-    const imgUrl = imgMatch ? imgMatch.replace(/\._[A-Z0-9_,]+_\.jpg/, '._SL300_.jpg') : null
-
-    // Preis
-    const priceMatch = contents.match(/(\d+[,\.]\d{2})\s*€|€\s*(\d+[,\.]\d{2})/)
-    const price = priceMatch
-      ? parseFloat((priceMatch[1] || priceMatch[2]).replace(',', '.'))
-      : null
-
-    return {
-      asin,
-      name: title,
-      price,
-      imgUrl,
-      affUrl: getAmazonUrl(asin),
+    const slugMatch = url.match(/amazon\.[a-z.]+\/([^/?#]+)\/(?:dp|gp)/i)
+    if (slugMatch) {
+      name = slugMatch[1]
+        .replace(/[，,].*/, '')           // ab Unicode-Komma abschneiden
+        .replace(/-/g, ' ')               // Bindestriche zu Leerzeichen
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 100)
     }
-  } catch (e) {
-    console.warn('fetchProductData failed:', e.message)
-    // Fallback: nur ASIN aus URL extrahieren
-    const slugMatch = url.match(/\/([^/?]+)\/dp\/[A-Z0-9]{10}/i)
-    const name = slugMatch
-      ? slugMatch[1].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).slice(0, 80)
-      : ''
-    return { asin, name, price: null, imgUrl: null, affUrl: getAmazonUrl(asin) }
+  } catch {}
+
+  if (!asin) return name ? { name, asin: null, imgUrl: null, affUrl: null } : null
+
+  return {
+    name,
+    asin,
+    imgUrl: getAmazonImageUrl(asin),
+    affUrl: getAmazonUrl(asin),
   }
 }
