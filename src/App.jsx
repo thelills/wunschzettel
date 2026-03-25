@@ -6,6 +6,9 @@ import Dashboard from './pages/Dashboard'
 import ListPage from './pages/ListPage'
 import GifterPage from './pages/GifterPage'
 import ResetPassword from './pages/ResetPassword'
+import Collections from './pages/Collections'
+import CollectionPage from './pages/CollectionPage'
+import CollectionPublic from './pages/CollectionPublic'
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -23,7 +26,10 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/list/:id" element={<ProtectedRoute><ListPage /></ProtectedRoute>} />
+          <Route path="/collections" element={<ProtectedRoute><Collections /></ProtectedRoute>} />
+          <Route path="/collections/:id" element={<ProtectedRoute><CollectionPage /></ProtectedRoute>} />
           <Route path="/r/:slug" element={<GifterPage />} />
+          <Route path="/c/:slug" element={<CollectionPublic />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

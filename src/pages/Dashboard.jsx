@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import Nav from '../components/layout/Nav'
@@ -11,6 +11,8 @@ const OCC_LBL = { wedding:'Hochzeit', birthday:'Geburtstag', baby:'Babyparty', c
 export default function Dashboard() {
   const { user, userName } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get('tab') || 'lists'
   const { toast, ToastEl } = useToast()
   const [lists, setLists] = useState([])
   const [loading, setLoading] = useState(true)
@@ -99,9 +101,18 @@ export default function Dashboard() {
             </h1>
             <p style={{ fontSize:'.82rem', color:'#aeaeb2', marginTop:2 }}>Deine Wunschlisten</p>
           </div>
-          <button onClick={() => setShowNew(true)} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'9px 20px', borderRadius:100, border:'none', cursor:'pointer', background:'#1d1d1f', color:'#fff', fontSize:'.84rem', fontWeight:600, fontFamily:'inherit', whiteSpace:'nowrap' }}>
-            + Neue Liste
+          <button onClick={() => activeTab === 'lists' ? setShowNew(true) : navigate('/collections')} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'9px 20px', borderRadius:100, border:'none', cursor:'pointer', background:'#1d1d1f', color:'#fff', fontSize:'.84rem', fontWeight:600, fontFamily:'inherit', whiteSpace:'nowrap' }}>
+            {activeTab === 'lists' ? '+ Neue Liste' : '+ Neue Sammlung'}
           </button>
+        </div>
+
+        {/* Tab Bar */}
+        <div style={{ display:'flex', gap:2, background:'#f4f4f5', border:'1px solid #ebebeb', borderRadius:10, padding:3, width:'fit-content', marginBottom:24 }}>
+          {[['lists','Listen'],['collections','Sammlungen']].map(([key, label]) => (
+            <button key={key} onClick={() => key === 'collections' ? navigate('/collections') : setSearchParams({})} style={{ padding:'6px 18px', borderRadius:8, border:'none', cursor:'pointer', background: activeTab===key ? '#fff' : 'transparent', color: activeTab===key ? '#1d1d1f' : '#6e6e73', fontSize:'.8rem', fontWeight: activeTab===key ? 600 : 500, fontFamily:'inherit', boxShadow: activeTab===key ? '0 1px 3px rgba(0,0,0,.06)' : 'none', transition:'all .15s' }}>
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Stats */}
