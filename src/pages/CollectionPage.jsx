@@ -96,7 +96,7 @@ export default function CollectionPage() {
     setSaving(true)
     const aff = genAffiliateLink(form.url)
     const asin = extractAsin(form.url)
-    const { error } = await supabase.from('collection_items').insert({
+    const insertData = {
       collection_id: id,
       name: form.name.trim(),
       url: form.url || null,
@@ -105,8 +105,9 @@ export default function CollectionPage() {
       image_url: window._colPendingImg || (asin ? getAmazonImageUrl(asin) : null),
       price: parseFloat(form.price) || null,
       note: form.note || null,
-      category: form.category || null,
-    })
+    }
+    if (form.category) insertData.category = form.category
+    const { error } = await supabase.from('collection_items').insert(insertData)
     setSaving(false)
     window._colPendingImg = null
     if (error) { toast('Fehler: ' + error.message); return }
