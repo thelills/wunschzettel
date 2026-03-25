@@ -52,7 +52,7 @@ export default function ListPage() {
       url: form.url || null,
       affiliate_url: aff.url,
       affiliate_id: aff.id,
-      image_url: asin ? getAmazonImageUrl(asin) : null,
+      image_url: window._pendingImgUrl || (asin ? getAmazonImageUrl(asin) : null),
       note: form.note || null,
       priority: form.prio,
       type: 'single',
@@ -62,6 +62,7 @@ export default function ListPage() {
     setSaving(false)
     if (error) { toast('Fehler: ' + error.message); return }
     setForm({ name:'', price:'', url:'', note:'', prio:'med' })
+    window._pendingImgUrl = null
     setShowAdd(false)
     toast('✓ Wunsch gespeichert')
     load()
@@ -95,10 +96,10 @@ export default function ListPage() {
       const data = await fetchProductData(form.url)
       if (data) {
         if (data.name) setForm(f => ({ ...f, name: data.name }))
-        if (data.imgUrl && !form.url.includes('zalando')) {
-          // Store image for when wish is saved
-          window._pendingImgUrl = data.imgUrl
-        }
+        if (data.price) setForm(f => ({ ...f, price: String(data.price) }))
+        // Store fetched image URL to use when saving
+        if (data.imgUrl) window._pendingImgUrl = data.imgUrl
+        else window._pendingImgUrl = null
       }
     } catch {}
     setFetching(false)

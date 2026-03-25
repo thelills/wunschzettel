@@ -156,7 +156,7 @@ export function getSuggestions({ age=30, gender='u', occasion='birthday', budget
       popular: p.pop || false,
       group: p.group || false,
       affUrl: `https://www.amazon.de/dp/${p.asin}?tag=${TAG}`,
-      imgUrl: `https://ws-eu.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=${p.asin}&Format=_SL250_&ID=AsinImage&MarketPlace=DE&ServiceVersion=20070822&WS=1&tag=${TAG}`,
+      imgUrl: p.asin ? `https://images-eu.ssl-images-amazon.com/images/P/${p.asin}.01._AC_SX300_.jpg` : null,
     }))
 
   // Sort: popular first, then by price asc
