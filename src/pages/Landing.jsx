@@ -97,11 +97,8 @@ export default function Landing() {
 
       {/* ── NAV ── */}
       <nav className="lp-nav" style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 40px', height:52, background: scrolled ? 'rgba(250,250,248,.92)' : 'transparent', backdropFilter: scrolled ? 'saturate(180%) blur(20px)' : 'none', borderBottom: scrolled ? `1px solid ${warm.border}` : 'none', transition:'all .3s' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={() => go('/')}>
-          <div style={{ width:26, height:26, borderRadius:7, background:'#1d1d1f', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <span style={{ fontSize:'1rem' }}>🎁</span>
-          </div>
-          <span style={{ fontSize:'.95rem', fontWeight:600, color:warm.text, letterSpacing:'-.02em' }}>Dein Wunsch</span>
+        <div style={{ cursor:'pointer' }} onClick={() => go('/')}>
+          <img src="/logo.png" alt="Dein Wunsch" style={{ height:36, width:'auto', display:'block', filter:'brightness(0) invert(1)' }} />
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <button onClick={() => go('/login')} style={{ ...btnSecondary, padding:'6px 16px', fontSize:'.8rem', border:'none', background:'transparent', color:warm.mid }}>Anmelden</button>
