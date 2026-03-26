@@ -134,7 +134,7 @@ export default function CollectionPage() {
   return (
     <div style={{ background:'#fafaf8', minHeight:'100vh', display:'flex', flexDirection:'column' }}>
       <Nav />
-      <div style={{ flex:1, maxWidth:1040, margin:'0 auto', padding:'28px 32px 80px', width:'100%', boxSizing:'border-box' }}>
+      <div style={{ flex:1, maxWidth:1040, margin:'0 auto', padding:'clamp(16px,3vw,28px) clamp(16px,3vw,32px) 80px', width:'100%', boxSizing:'border-box' }}>
 
         <button onClick={() => navigate('/collections')} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'.78rem', color:'#aeaeb2', display:'flex', alignItems:'center', gap:4, padding:0, marginBottom:10, fontFamily:'inherit' }}>
           ← Sammlungen
@@ -195,7 +195,7 @@ export default function CollectionPage() {
             <button style={btn(true)} onClick={() => setShowAdd(true)}>+ Idee hinzufügen</button>
           </div>
         ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:14 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:14 }}>
             {items.map(item => (
               <ItemCard key={item.id} item={item} onDelete={deleteItem} />
             ))}

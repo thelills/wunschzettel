@@ -62,7 +62,7 @@ export default function Collections() {
   return (
     <div style={{ background:'#fafaf8', minHeight:'100vh', display:'flex', flexDirection:'column' }}>
       <Nav />
-      <div style={{ flex:1, maxWidth:1040, margin:'0 auto', padding:'28px 32px 80px', width:'100%', boxSizing:'border-box' }}>
+      <div style={{ flex:1, maxWidth:1040, margin:'0 auto', padding:'clamp(16px,3vw,28px) clamp(16px,3vw,32px) 80px', width:'100%', boxSizing:'border-box' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, flexWrap:'wrap', gap:12 }}>
           <div>
             <h1 style={{ fontFamily:"'DM Serif Display',Georgia,serif", fontSize:'1.7rem', fontWeight:400, color:'#1d1d1f', letterSpacing:'-.02em' }}>Sammlungen</h1>
