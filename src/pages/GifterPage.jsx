@@ -170,22 +170,49 @@ export default function GifterPage() {
         </div>
 
         {/* Footer */}
-        <div style={{ padding:'8px 14px 12px', display:'flex', gap:8, alignItems:'center', borderTop:'1px solid #f5f5f5' }}>
-          {affLink && !isFulfilled && (
-            <a href={affLink} target="_blank" rel="noopener" style={{ padding:'6px 12px', borderRadius:7, border:'1px solid #ebebeb', background:'#fff', fontSize:'.76rem', color:'#6e6e73', textDecoration:'none', fontWeight:500 }}>Bei Amazon</a>
-          )}
-          {!isFulfilled && !isGroup && (
-            <button onClick={() => setResModal(w)} style={{ flex:1, padding:'7px 0', borderRadius:8, border:'none', cursor:'pointer', background:'#1d1d1f', color:'#fff', fontSize:'.8rem', fontWeight:600, fontFamily:'inherit' }}>
-              Schenken →
-            </button>
-          )}
-          {!isFulfilled && isGroup && (
-            <button onClick={() => { setGroupModal(w); setGroupAmount(String(Math.round(target/4))) }} style={{ flex:1, padding:'7px 0', borderRadius:8, border:'none', cursor:'pointer', background:'#6366f1', color:'#fff', fontSize:'.8rem', fontWeight:600, fontFamily:'inherit' }}>
+        <div style={{ padding:'10px 14px 12px', borderTop:'1px solid #f5f5f5' }}>
+          {isFulfilled ? (
+            <div style={{ textAlign:'center', fontSize:'.78rem', fontWeight:600, color:'#16a34a', padding:'4px 0' }}>
+              ✓ {isGroup ? 'Ziel erreicht' : 'Bereits reserviert'}
+            </div>
+          ) : isGroup ? (
+            <button onClick={() => { setGroupModal(w); setGroupAmount(String(Math.round(target/4))) }}
+              style={{ width:'100%', padding:'9px 0', borderRadius:9, border:'none', cursor:'pointer', background:'#6366f1', color:'#fff', fontSize:'.84rem', fontWeight:600, fontFamily:'inherit' }}>
               ⟡ Mitschenken →
             </button>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              <div style={{ display:'flex', gap:6 }}>
+                <button onClick={() => setResModal(w)}
+                  style={{ flex:1, padding:'9px 0', borderRadius:9, border:'none', cursor:'pointer', background:'#1d1d1f', color:'#fff', fontSize:'.8rem', fontWeight:600, fontFamily:'inherit' }}>
+                  Ich schenke es ganz →
+                </button>
+                {w.price && Number(w.price) >= 20 && (
+                  <button onClick={() => {
+                    setGroupModal({
+                      ...w,
+                      type: 'group',
+                      group_target: Number(w.price),
+                      group_raised: Number(w.group_raised || 0),
+                      group_contributions: w.group_contributions || [],
+                      _adhoc: true,
+                    })
+                    setGroupAmount(String(Math.round(Number(w.price) / 3)))
+                  }}
+                    style={{ padding:'9px 12px', borderRadius:9, border:'1px solid rgba(99,102,241,.25)', cursor:'pointer', background:'rgba(99,102,241,.06)', color:'#6366f1', fontSize:'.76rem', fontWeight:600, fontFamily:'inherit', whiteSpace:'nowrap' }}>
+                    ⟡ Anteilig
+                  </button>
+                )}
+              </div>
+              {affLink && (
+                <a href={affLink} target="_blank" rel="noopener"
+                  style={{ textAlign:'center', fontSize:'.72rem', color:'#aeaeb2', textDecoration:'none', padding:'2px 0' }}>
+                  Bei Amazon ansehen ↗
+                </a>
+              )}
+            </div>
           )}
-          {isFulfilled && (
-            <div style={{ flex:1, textAlign:'center', fontSize:'.78rem', fontWeight:600, color:'#16a34a' }}>✓ {isGroup ? 'Ziel erreicht' : 'Reserviert'}</div>
+        </div>
           )}
         </div>
 
@@ -295,7 +322,9 @@ export default function GifterPage() {
               <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(99,102,241,.08)', border:'1px solid rgba(99,102,241,.2)', borderRadius:100, padding:'4px 12px', marginBottom:16 }}>
                 <span style={{ fontSize:'.7rem', fontWeight:600, color:'#6366f1' }}>⟡ Gruppengeschenk</span>
               </div>
-              <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'1.3rem', fontWeight:400, color:'#1d1d1f', marginBottom:4 }}>Mitschenken</h2>
+              <h2 style={{ fontFamily:"'DM Serif Display',serif", fontSize:'1.3rem', fontWeight:400, color:'#1d1d1f', marginBottom:4 }}>
+                {groupModal._adhoc ? 'Anteilig schenken' : 'Mitschenken'}
+              </h2>
               <p style={{ fontSize:'.84rem', color:'#6e6e73', marginBottom:20 }}>{groupModal.name}</p>
 
               {/* Visual progress */}
@@ -359,7 +388,7 @@ export default function GifterPage() {
               <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
                 <button onClick={() => setGroupModal(null)} style={{ padding:'7px 16px', borderRadius:8, border:'1px solid #ebebeb', background:'#fff', cursor:'pointer', fontSize:'.8rem', fontFamily:'inherit', color:'#6e6e73' }}>Abbrechen</button>
                 <button onClick={contribute} disabled={reserving} style={{ flex:1, padding:'10px 0', borderRadius:10, border:'none', cursor:'pointer', background:'#6366f1', color:'#fff', fontSize:'.9rem', fontWeight:600, fontFamily:'inherit' }}>
-                  {reserving ? '…' : `€${sliderAmount} schenken →`}
+                  {reserving ? '…' : groupModal?._adhoc ? `€${sliderAmount} anteilig schenken →` : `€${sliderAmount} beitragen →`}
                 </button>
               </div>
             </div>
