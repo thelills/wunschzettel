@@ -213,8 +213,6 @@ export default function GifterPage() {
             </div>
           )}
         </div>
-          )}
-        </div>
 
         {/* Reserved veil for single gifts */}
         {!isGroup && isFulfilled && (
