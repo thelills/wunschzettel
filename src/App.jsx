@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import ListPage from './pages/ListPage'
 import GifterPage from './pages/GifterPage'
 import ResetPassword from './pages/ResetPassword'
+import Feedback from './pages/Feedback'
 import Collections from './pages/Collections'
 import CollectionPage from './pages/CollectionPage'
 import CollectionPublic from './pages/CollectionPublic'
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/login" element={<Auth mode="login" />} />
           <Route path="/register" element={<Auth mode="register" />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/feedback" element={<Feedback />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/list/:id" element={<ProtectedRoute><ListPage /></ProtectedRoute>} />
           <Route path="/collections" element={<ProtectedRoute><Collections /></ProtectedRoute>} />
