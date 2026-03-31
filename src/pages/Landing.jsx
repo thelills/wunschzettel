@@ -117,6 +117,10 @@ export default function Landing() {
             <FloatingItems />
           </div>
           <div className="lp-animate2">
+            {/* Logo im Hero */}
+            <div style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
+              <img src="/logo.png" alt="Dein Wunsch" style={{ height:72, width:'auto' }} />
+            </div>
             <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(176,125,74,.1)', border:'1px solid rgba(176,125,74,.25)', borderRadius:100, padding:'5px 14px', marginBottom:20 }}>
               <span style={{ fontSize:'.68rem', fontWeight:600, letterSpacing:'.1em', textTransform:'uppercase', color:warm.accent }}>Kostenlos · Werbefrei · DSGVO</span>
             </div>

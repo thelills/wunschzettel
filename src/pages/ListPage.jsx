@@ -27,7 +27,7 @@ export default function ListPage() {
   const [showAI, setShowAI] = useState(false)
   const [aiSugs, setAiSugs] = useState([])
   const [aiParams, setAiParams] = useState({ ageGroup:'30-39', gender:'u', budgetMax:150 })
-  const [form, setForm] = useState({ name:'', price:'', url:'', note:'', prio:'med' })
+  const [form, setForm] = useState({ name:'', price:'', url:'', note:'', prio:'med', isGroup:false, groupTarget:'' })
   const [saving, setSaving] = useState(false)
   const [fetching, setFetching] = useState(false)
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -45,7 +45,7 @@ export default function ListPage() {
     setSaving(true)
     const aff = genAffiliateLink(form.url)
     const asin = extractAsin(form.url)
-    const { error } = await supabase.from('wishes').insert({
+    const wishData = {
       registry_id: id,
       name: form.name.trim(),
       price: parseFloat(form.price) || null,
@@ -55,13 +55,18 @@ export default function ListPage() {
       image_url: window._pendingImgUrl || (asin ? getAmazonImageUrl(asin) : null),
       note: form.note || null,
       priority: form.prio,
-      type: 'single',
+      type: form.isGroup ? 'group' : 'single',
       is_reserved: false,
       ai_generated: false,
-    })
+    }
+    if (form.isGroup && form.groupTarget) {
+      wishData.group_target = parseFloat(form.groupTarget)
+      wishData.group_raised = 0
+    }
+    const { error } = await supabase.from('wishes').insert(wishData)
     setSaving(false)
     if (error) { toast('Fehler: ' + error.message); return }
-    setForm({ name:'', price:'', url:'', note:'', prio:'med' })
+    setForm({ name:'', price:'', url:'', note:'', prio:'med', isGroup:false, groupTarget:'' })
     window._pendingImgUrl = null
     setShowAdd(false)
     toast('✓ Wunsch gespeichert')
@@ -217,6 +222,22 @@ export default function ListPage() {
                   <option value="low">Nice to have</option>
                 </select>
               </div>
+              {/* Gruppengeschenk Toggle */}
+              <div style={{ gridColumn:'1/-1', display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background: form.isGroup ? 'rgba(99,102,241,.06)' : '#f9f9f9', border: form.isGroup ? '1px solid rgba(99,102,241,.2)' : '1px solid #ebebeb', borderRadius:10, cursor:'pointer' }} onClick={() => setForm(f => ({ ...f, isGroup: !f.isGroup }))}>
+                <div style={{ width:38, height:22, borderRadius:11, background: form.isGroup ? '#6366f1' : '#d1d5db', position:'relative', flexShrink:0, transition:'background .2s' }}>
+                  <div style={{ position:'absolute', top:3, left: form.isGroup ? 19 : 3, width:16, height:16, borderRadius:'50%', background:'#fff', boxShadow:'0 1px 3px rgba(0,0,0,.2)', transition:'left .2s' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize:'.82rem', fontWeight:600, color: form.isGroup ? '#6366f1' : '#1d1d1f' }}>Gruppengeschenk ⟡</div>
+                  <div style={{ fontSize:'.72rem', color:'#aeaeb2' }}>Mehrere Schenkende können gemeinsam beitragen</div>
+                </div>
+              </div>
+              {form.isGroup && (
+                <div className="field" style={{ gridColumn:'1/-1' }}>
+                  <label>Zielbetrag (€) *</label>
+                  <input type="number" value={form.groupTarget} onChange={set('groupTarget')} placeholder="z.B. 200" autoFocus />
+                </div>
+              )}
               <div className="field" style={{ gridColumn:'1/-1' }}>
                 <label>Hinweis (optional)</label>
                 <textarea value={form.note} onChange={set('note')} placeholder="z.B. Bitte in Rot, Größe M" style={{ minHeight:56 }} />
